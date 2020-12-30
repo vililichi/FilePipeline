@@ -1,0 +1,7 @@
+﻿
+/src/out
+.vs
+/src/SFML*
+.vscode
+build
+lib/SFML
