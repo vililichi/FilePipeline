@@ -1,9 +1,9 @@
 # FilePipeline
 
-#Utilisation 
+#Utilisation	
 Il y a 2 exécutables permettant d'éffectuer les actions suivantes:
 
--download.exe:
+-download.exe:	
 	-permet de se connecter à un uploader et téléchargé ses fichiers
 	-télécharge les fichier dans le répertoire download présent dans le répertoire de l'exécutable
 
