@@ -9,8 +9,8 @@
 
 struct fileInfo
 {
-	std::string name;
-	uint32_t size;
+	std::string name = "";
+	uint32_t size = 0;
 };
 
 std::vector<fileInfo> list(sf::TcpSocket* socket_ptr)

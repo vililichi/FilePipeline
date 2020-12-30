@@ -31,7 +31,7 @@ void Packet::setCapacity(size_t newCapacity)
 	{
 		new_data[i] = _data[i];
 	}
-	delete[_capacity] _data;
+	delete[] _data;
 	_data = new_data;
 	new_data = nullptr;
 	_capacity = newCapacity;
