@@ -6,6 +6,7 @@
 #include <chrono>
 #include "command.h"
 #include "list.h"
+#include "tachymeter.h"
 
 
 #pragma region fonction commande
@@ -39,6 +40,8 @@ void download(sf::TcpSocket* socket_ptr,std::string filename)
 
 	std::fstream file(path, std::fstream::out | std::fstream::binary);
 	std::cout << 0 << "\t\t| " << tailleFichier;
+	Tachymeter tachy;
+	tachy.start();
 	while (true)
 	{
 		Packet fchunk = receive(socket_ptr);
@@ -52,12 +55,13 @@ void download(sf::TcpSocket* socket_ptr,std::string filename)
 
 			char reponse[1] = { true };
 			socket_ptr->send(reponse, sizeof(char));
-
-			std::cout <<'\r'<< tailleActu << "\t\t| " << tailleFichier;
+			tachy.addSample(fchunk.size() - fchunk.cursor());
+			std::cout <<'\r'<< tailleActu << " octets\t\t| " << tailleFichier << " octets\t"<<tachy.speed()<<"Ko/s";
 		}
 		else break;
 	}
-	std::cout << std::endl;
+	tachy.stop();
+	std::cout<<std::endl<<"vitesse moyenne: " <<tachy.avgSpeed()<<"ko/s"<< std::endl;
 	file.close();
 }
 #pragma endregion

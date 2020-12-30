@@ -22,7 +22,7 @@ file (GLOB G_COMMON_SRC "${COMMON_SRC_DIR}/*.cpp")
 file (GLOB G_COMMON_HDR "${COMMON_SRC_DIR}/*.h")
 
 # add_executable (downloader "${SRC_DIR}/*.cpp" "${HDR_DIR}/*.h" "${COMMON_SRC_DIR}/*.cpp" "${COMMON_HDR_DIR}/*.h")
-add_executable ("${PROJECT_NAME}" "${G_COMMON_SRC}" "${G_COMMON_HDR}" "${G_SRC}" "${G_HDR}" "hdr/list.h" "hdr/receive.h")
+add_executable ("${PROJECT_NAME}" "${G_COMMON_SRC}" "${G_COMMON_HDR}" "${G_SRC}" "${G_HDR}" "hdr/list.h" "hdr/receive.h" "src/tachymeter.cpp")
 target_link_libraries ("${PROJECT_NAME}" sfml-network sfml-system)
 
 # TODO: Ajoutez des tests et installez des cibles si nécessaire.
