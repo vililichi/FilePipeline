@@ -1,6 +1,6 @@
 #include "packet.h"
 
-#pragma region m�thode
+#pragma region methode
 
 Packet::Packet(size_t beginCapacity) :_capacity(beginCapacity), _size(0), _cursor(0)
 {

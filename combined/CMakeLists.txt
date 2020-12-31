@@ -1,7 +1,7 @@
 ﻿# CMakeList.txt : projet CMake pour FilePipeline, incluez la source et définissez
 # la logique spécifique au projet ici.
 #
-cmake_minimum_required (VERSION 3.8)
+cmake_minimum_required (VERSION 3.10)
 
 project ("filepipeline")
 
@@ -25,3 +25,9 @@ add_executable ("${PROJECT_NAME}" "${G_COMMON_SRC}" "${G_COMMON_HDR}" "${G_SRC}"
 target_link_libraries ("${PROJECT_NAME}" sfml-network sfml-system)
 
 # TODO: Ajoutez des tests et installez des cibles si nécessaire.
+if ("${CMAKE_GENERATOR}" MATCHES "Visual Studio*")
+	get_filename_component(smartCmdArgJsonFile "project.args.json" ABSOLUTE)
+	MESSAGE(STATUS "Path to json file: " ${smartCmdArgJsonFile})
+
+	set_property(TARGET "${PROJECT_NAME}" PROPERTY VS_GLOBAL_SmartCmdArgJsonFile "${smartCmdArgJsonFile}")
+endif()
