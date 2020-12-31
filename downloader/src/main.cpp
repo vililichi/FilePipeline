@@ -8,7 +8,6 @@
 #include "list.h"
 #include "tachymeter.h"
 
-
 #pragma region fonction commande
 void download(sf::TcpSocket* socket_ptr,std::string filename)
 {

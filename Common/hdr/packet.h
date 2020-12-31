@@ -10,23 +10,23 @@ class Packet
 {
 protected:
 
-	// gestion de la taille et de la capacité
+	// gestion de la taille et de la capacitï¿½
 	size_t _capacity;
 	size_t _size;
 	size_t _cursor;
 
-	// données
+	// donnï¿½es
 	char* _data;
 
 public:
 
 	//constructeur et destructeur
-	Packet(size_t beginCapacity = PacketConst::MAXSIZE); //constructeur avec capacité de départ
+	Packet(size_t beginCapacity = PacketConst::MAXSIZE); //constructeur avec capacitï¿½ de dï¿½part
 	Packet(const Packet& base);
 	~Packet();
 
-	//modification de la taille des données
-	void setCapacity(size_t newCapacity); //change la capacité du packet
+	//modification de la taille des donnï¿½es
+	void setCapacity(size_t newCapacity); //change la capacitï¿½ du packet
 
 	//lecture des attributs
 	const size_t size() { return _size; }
@@ -34,15 +34,15 @@ public:
 	const size_t cursor() { return _cursor; }
 	char* data() { return _data; }
 
-	//navigation dans les données
-	const bool end() { return _cursor == _size; } //retourne vrai si le curseur est à la fin des données
-	void move(size_t);//déplace le curseur
+	//navigation dans les donnï¿½es
+	const bool end() { return _cursor == _size; } //retourne vrai si le curseur est ï¿½ la fin des donnï¿½es
+	void move(size_t);//dï¿½place le curseur
 
 	//modification
-	void add(char* newData, size_t dataSize); //ajoute les données à partir de la position du curseur et déplace le curseur à la fin des données
+	void add(char* newData, size_t dataSize); //ajoute les donnï¿½es ï¿½ partir de la position du curseur et dï¿½place le curseur ï¿½ la fin des donnï¿½es
 
 
-	//operateur pour écriture
+	//operateur pour ï¿½criture
 
 	Packet& operator = (const Packet& _b);
 

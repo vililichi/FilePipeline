@@ -1,6 +1,6 @@
 #include "packet.h"
 
-#pragma region méthode
+#pragma region mï¿½thode
 
 Packet::Packet(size_t beginCapacity) :_capacity(beginCapacity), _size(0), _cursor(0)
 {
@@ -39,17 +39,17 @@ void Packet::setCapacity(size_t newCapacity)
 
 void Packet::move(size_t position)
 {
-	if (position > _size) throw "deplacement à l'exterieur des donnees";
+	if (position > _size) throw "deplacement ï¿½ l'exterieur des donnees";
 	_cursor = position;
 }
 
 void Packet::add(char* newData, size_t dataSize)
 {
-	//modification de la taille et de la capacité
+	//modification de la taille et de la capacitï¿½
 	size_t newSize = _cursor + dataSize;
 	if (newSize > _capacity) setCapacity(newSize);
 	if (newSize > _size) _size = newSize;
-	//ajout des données
+	//ajout des donnï¿½es
 	for (size_t i = 0; i < dataSize; i++)
 	{
 		_data[_cursor] = newData[i];
