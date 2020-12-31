@@ -1,5 +1,4 @@
-﻿// AVCs_5.cpp : définit le point d'entrée de l'application.
-//
+﻿
 
 
 #include <vector>
@@ -32,6 +31,14 @@ void upload(sf::TcpSocket* socket_ptr, std::string filename)
 	path += "/" + filename;
 	std::fstream file(path, std::fstream::in | std::fstream::binary);
 
+	if (!file)
+	{
+		//envoie de message negatif
+		char message[1] = { false };
+		socket_ptr->send(message, sizeof(char));
+		return;
+	}
+
 	//envoie de message positif
 	char message[1] = { true };
 	Packet prepq;
@@ -43,25 +50,19 @@ void upload(sf::TcpSocket* socket_ptr, std::string filename)
 	socket_ptr->receive(depart, sizeof(char), sizeDepart);
 	if (sizeDepart == 0 || depart[0] == false) return;
 
-	while (file && !file.eof())
+	while (!file.eof())
 	{
 		Packet fchunk;
-		const size_t maxSize = PacketConst::MAXSIZE - sizeof(char);
+		const size_t maxSize = PacketConst::MAXSIZE;
 		char data[maxSize];
 		size_t size = 0;
 
 		file.read(data, maxSize);
 		size = file.gcount();
 
-		fchunk << command::UpToDown::file;
 		fchunk.add(data, size);
 
 		socket_ptr->send(fchunk.data(), fchunk.size());
-
-		//attente d'un reponse positive
-		char reponse[1];
-		socket_ptr->receive(reponse, sizeof(char), size);
-		if (size == 0 || reponse[0] == false) break;
 	}
 	char endCom[1];
 	endCom[0] = command::UpToDown::endOfFile;

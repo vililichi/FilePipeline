@@ -3,7 +3,7 @@
 
 namespace PacketConst
 {
-	const static size_t MAXSIZE = 576;
+	const static size_t MAXSIZE = 1454;
 }
 
 class Packet
@@ -64,7 +64,7 @@ public:
 
 #pragma region << operator
 template <typename T>
-Packet& Packet::operator << (T data)
+inline Packet& Packet::operator << (T data)
 {
 	const size_t bytesNbr = sizeof(T);
 
@@ -74,7 +74,7 @@ Packet& Packet::operator << (T data)
 }
 
 template <>
-Packet& Packet::operator << (std::string data)
+inline Packet& Packet::operator << (std::string data)
 {
 	const size_t bytesNbr = data.size() + 1;
 
@@ -89,7 +89,7 @@ Packet& Packet::operator << (std::string data)
 #pragma region >> operator
 
 template <typename T>
-Packet& Packet::operator >> (T& data)
+inline Packet& Packet::operator >> (T& data)
 {
 	const size_t bytesNbr = sizeof(T);
 	if ((_cursor + bytesNbr) > _size)throw "depassement lors de la lecture";
@@ -100,7 +100,7 @@ Packet& Packet::operator >> (T& data)
 }
 
 template <>
-Packet& Packet::operator >> (std::string& data)
+inline Packet& Packet::operator >> (std::string& data)
 {
 	size_t bytesNbr = 0;
 	const size_t virtSize = _size - 1;
@@ -116,4 +116,3 @@ Packet& Packet::operator >> (std::string& data)
 }
 
 #pragma endregion
-

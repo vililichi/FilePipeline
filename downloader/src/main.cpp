@@ -42,23 +42,14 @@ void download(sf::TcpSocket* socket_ptr,std::string filename)
 	std::cout << 0 << "\t\t| " << tailleFichier;
 	Tachymeter tachy;
 	tachy.start();
-	while (true)
+	while (tailleActu < tailleFichier)
 	{
 		Packet fchunk = receive(socket_ptr);
-		char command;
-		fchunk >> command;
-		if (command == command::UpToDown::file)
-		{
-			file.write(fchunk.data() + fchunk.cursor(), fchunk.size() - fchunk.cursor());
-			tailleActu += fchunk.size() - fchunk.cursor();
+		file.write(fchunk.data() + fchunk.cursor(), fchunk.size());
+		tailleActu += fchunk.size();
+		tachy.addSample(fchunk.size());
+		std::cout <<'\r'<< tailleActu << " octets\t\t| " << tailleFichier << " octets\t"<<tachy.speed()<<"Ko/s";
 
-
-			char reponse[1] = { true };
-			socket_ptr->send(reponse, sizeof(char));
-			tachy.addSample(fchunk.size() - fchunk.cursor());
-			std::cout <<'\r'<< tailleActu << " octets\t\t| " << tailleFichier << " octets\t"<<tachy.speed()<<"Ko/s";
-		}
-		else break;
 	}
 	tachy.stop();
 	std::cout<<std::endl<<"vitesse moyenne: " <<tachy.avgSpeed()<<"ko/s"<< std::endl;
