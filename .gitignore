@@ -1,7 +1,7 @@
 ﻿
 /src/out
 .vs
-/src/SFML*
+/lib/SFML*
 .vscode
 build
-lib/SFML
+lib/SFML*
