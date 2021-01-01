@@ -53,7 +53,7 @@ void upload(sf::TcpSocket* socket_ptr, std::string filename)
 	while (!file.eof())
 	{
 		Packet fchunk;
-		const size_t maxSize = PacketConst::MAXSIZE;
+		const size_t maxSize = INIT_PACKET_SIZE;
 		char data[maxSize];
 		size_t size = 0;
 
@@ -102,10 +102,10 @@ void socketFunction(sf::TcpSocket** tcp_ptr)
 {
 	while (true)
 	{
-		char data[PacketConst::MAXSIZE];
+		char data[INIT_PACKET_SIZE];
 		size_t size;
 		Packet pq;
-		sf::Socket::Status stat = (*tcp_ptr)->receive(data,PacketConst::MAXSIZE,size);
+		sf::Socket::Status stat = (*tcp_ptr)->receive(data,INIT_PACKET_SIZE,size);
 		if (stat == sf::Socket::Status::Error || stat == sf::Socket::Status::Disconnected)
 		{
 			break;
