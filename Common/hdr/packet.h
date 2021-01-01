@@ -1,6 +1,8 @@
 #pragma once
 #include <string>
 
+#define INIT_PACKET_SIZE 512 
+
 namespace PacketConst
 {
 	const static size_t MAXSIZE = 1454;
@@ -21,7 +23,7 @@ protected:
 public:
 
 	//constructeur et destructeur
-	Packet(size_t beginCapacity = PacketConst::MAXSIZE); //constructeur avec capacité de départ
+	Packet(size_t beginCapacity = INIT_PACKET_SIZE); //constructeur avec capacité de départ
 	Packet(const Packet& base);
 	~Packet();
 
