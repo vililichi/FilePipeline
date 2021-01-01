@@ -3,11 +3,6 @@
 
 #define INIT_PACKET_SIZE 512 
 
-namespace PacketConst
-{
-	const static size_t MAXSIZE = 1454;
-}
-
 class Packet
 {
 protected:
