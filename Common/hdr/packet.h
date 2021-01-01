@@ -40,6 +40,8 @@ public:
 
 	//modification
 	void add(char* newData, size_t dataSize); //ajoute les données à partir de la position du curseur et déplace le curseur à la fin des données
+	void popBack(size_t nbr);//retire les nbr dernier data du packet
+	void read(char* data, size_t readSize); // lit un nombre déterminer de donné et déplace le curseur
 
 
 	//operateur pour écriture
@@ -60,6 +62,7 @@ public:
 	Packet& operator >> (T& data);
 	template <>
 	Packet& operator >> (std::string& data);
+
 };
 
 #pragma region << operator
