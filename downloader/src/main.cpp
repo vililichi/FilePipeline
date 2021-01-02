@@ -96,10 +96,10 @@ int main()
 		//help
 		if (p_commande[0] == "h" || p_commande[0] == "help")
 		{
-			std::cout << "download [fichier] : télécharge le fichier" << std::endl;
+			std::cout << "download [fichier] : telecharge le fichier" << std::endl;
 			std::cout << "exit : ferme le programme" << std::endl;
 			std::cout << "help : liste toutes les commandes" << std::endl;
-			std::cout << "list : liste tout les fichiers téléchargeables" << std::endl;
+			std::cout << "list : liste tout les fichiers telechargeables" << std::endl;
 		}
 		//liste
 		else if (p_commande[0] == "ls" || p_commande[0] == "list")
