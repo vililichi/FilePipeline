@@ -7,6 +7,7 @@
 #include "command.h"
 #include "list.h"
 #include "tachymeter.h"
+#include "packetCryptation.h"
 
 
 #pragma region fonction commande
@@ -32,6 +33,12 @@ void download(sf::TcpSocket* socket_ptr,std::string filename)
 	uint32_t tailleActu = 0;
 	autoInfo >> tailleFichier;
 
+	char cle[240];
+	autoInfo.read(cle, 32);
+
+	//expension de la cle
+	AES::expensionCle(cle);
+
 	std::string path = DOWN_PATH;
 	path += "/" + filename;
 
@@ -44,8 +51,16 @@ void download(sf::TcpSocket* socket_ptr,std::string filename)
 	tachy.start();
 	while (tailleActu < tailleFichier)
 	{
+		//reception
 		Packet fchunk = receive(socket_ptr);
+
+		//decryptage
+		AES::decryptage(fchunk, cle);
+
+		//ecriture
 		file.write(fchunk.data() + fchunk.cursor(), fchunk.size());
+
+		//suivie
 		tailleActu += fchunk.size();
 		tachy.addSample(fchunk.size());
 		std::cout <<'\r'<< tailleActu << " octets\t\t| " << tailleFichier << " octets\t"<<tachy.speed()<<"Ko/s";

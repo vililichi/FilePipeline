@@ -1,7 +1,7 @@
 #pragma once
 #include <string>
 
-#define INIT_PACKET_SIZE 512 
+#define INIT_PACKET_SIZE 1440
 
 class Packet
 {

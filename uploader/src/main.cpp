@@ -10,6 +10,7 @@
 #include "command.h"
 #include "packet.h"
 #include "list.h"
+#include "packetCryptation.h"
 
 #pragma region fonction de communication
 void upload(sf::TcpSocket* socket_ptr, std::string filename)
@@ -39,21 +40,31 @@ void upload(sf::TcpSocket* socket_ptr, std::string filename)
 		return;
 	}
 
+	//création de la clé
+	char cle[240];
+	AES::generation(cle);
+
 	//envoie de message positif
 	char message[1] = { true };
 	Packet prepq;
 	prepq << message[0] << liste[position].size;
+	prepq.add(cle, 32);
 	socket_ptr->send(prepq.data(), prepq.size());
 
+	//reception d'une confirmation
 	char depart[1];
 	size_t sizeDepart;
 	socket_ptr->receive(depart, sizeof(char), sizeDepart);
 	if (sizeDepart == 0 || depart[0] == false) return;
 
+	//expension de la cle
+	AES::expensionCle(cle);
+
 	while (!file.eof())
 	{
-		Packet fchunk;
-		const size_t maxSize = INIT_PACKET_SIZE;
+		const size_t packetSize = 16 * 90;
+		Packet fchunk(packetSize);
+		const size_t maxSize = packetSize -1;
 		char data[maxSize];
 		size_t size = 0;
 
@@ -61,12 +72,10 @@ void upload(sf::TcpSocket* socket_ptr, std::string filename)
 		size = file.gcount();
 
 		fchunk.add(data, size);
+		AES::cryptage(fchunk, cle);
 
 		socket_ptr->send(fchunk.data(), fchunk.size());
 	}
-	char endCom[1];
-	endCom[0] = command::UpToDown::endOfFile;
-	socket_ptr->send(endCom, sizeof(char));
 	file.close();
 }
 #pragma endregion
