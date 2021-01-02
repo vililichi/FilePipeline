@@ -8,6 +8,7 @@
 #include "list.h"
 #include "tachymeter.h"
 #include "packetCryptation.h"
+#include "packetSendReceive.h"
 
 
 #pragma region fonction commande
@@ -16,7 +17,7 @@ void download(sf::TcpSocket* socket_ptr,std::string filename)
 	//demande d'Acces
 	Packet pq;
 	pq << command::DownToUp::download << filename;
-	socket_ptr->send(pq.data(), pq.size());
+	send(pq, socket_ptr);
 
 	//analyse de la reponse
 	bool autorisation;

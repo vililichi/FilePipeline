@@ -11,6 +11,7 @@
 #include "packet.h"
 #include "list.h"
 #include "packetCryptation.h"
+#include "packetSendReceive.h"
 
 #pragma region fonction de communication
 void upload(sf::TcpSocket* socket_ptr, std::string filename)
@@ -49,7 +50,7 @@ void upload(sf::TcpSocket* socket_ptr, std::string filename)
 	Packet prepq;
 	prepq << message[0] << liste[position].size;
 	prepq.add(cle, 32);
-	socket_ptr->send(prepq.data(), prepq.size());
+	send(prepq, socket_ptr);
 
 	//reception d'une confirmation
 	char depart[1];
@@ -74,7 +75,7 @@ void upload(sf::TcpSocket* socket_ptr, std::string filename)
 		fchunk.add(data, size);
 		AES::cryptage(fchunk, cle);
 
-		socket_ptr->send(fchunk.data(), fchunk.size());
+		send(fchunk, socket_ptr);
 	}
 	file.close();
 }
@@ -93,7 +94,7 @@ void traitementPacket(sf::TcpSocket* tcp_ptr, Packet& pq)
 		std::vector<fileInfo> liste = list();
 		reponse << liste.size();
 		for (size_t i = 0; i < liste.size(); i++)reponse << liste[i].name<<liste[i].size;
-		tcp_ptr->send(reponse.data(), reponse.size());
+		send(reponse, tcp_ptr);
 		break;
 		}
 	case command::DownToUp::download:
@@ -113,14 +114,13 @@ void socketFunction(sf::TcpSocket** tcp_ptr)
 	{
 		char data[INIT_PACKET_SIZE];
 		size_t size;
-		Packet pq;
-		sf::Socket::Status stat = (*tcp_ptr)->receive(data,INIT_PACKET_SIZE,size);
+		
+		sf::Socket::Status stat;
+		Packet pq = receive(*tcp_ptr, &stat);
 		if (stat == sf::Socket::Status::Error || stat == sf::Socket::Status::Disconnected)
 		{
 			break;
 		}
-		pq.add(data, size);
-		pq.move(0);
 		traitementPacket(*tcp_ptr, pq);
 	}
 	delete *tcp_ptr;

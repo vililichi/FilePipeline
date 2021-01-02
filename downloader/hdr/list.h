@@ -2,7 +2,7 @@
 #include <string>
 #include <vector>
 #include <filesystem>
-#include "receive.h"
+#include "packetSendReceive.h"
 #include "general.h"
 
 #define DOWN_PATH "download"
@@ -16,9 +16,9 @@ struct fileInfo
 std::vector<fileInfo> list(sf::TcpSocket* socket_ptr)
 {
 	//envoie de la demande
-	char ptr[1];
-	ptr[0] = command::DownToUp::list;
-	socket_ptr->send(ptr, 1);
+	Packet demande;
+	demande << command::DownToUp::list;
+	send(demande, socket_ptr);
 
 	//reception de la reponse
 	Packet pq = receive(socket_ptr);
