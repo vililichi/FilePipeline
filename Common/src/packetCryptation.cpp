@@ -1,4 +1,5 @@
 #include "packetCryptation.h"
+#include <future>
 
 //cryptage d'un paquet à l'aide d'une clé de 240 octets, la taille du packet peu augmenter de 16 octets
 void AES::cryptage(Packet& cible, char* cle)
@@ -20,10 +21,12 @@ void AES::cryptage(Packet& cible, char* cle)
 
 	//cryptage
 	size_t cycle = taille / 16;
+	std::vector<std::future<void>> futures;
 	for (int i = 0; i < cycle; i++)
 	{
-		AES::cryptage(cible.data() + (16 * i), cle);
+		futures.emplace_back(std::async(std::launch::async, [](char* b16, char* cle) {AES::cryptage(b16, cle); }, cible.data() + (16 * i), cle));
 	}
+	for (auto& future : futures)future.wait();
 
 }
 
@@ -36,10 +39,12 @@ void AES::decryptage(Packet& cible, char* cle)
 
 	//decryptage
 	size_t cycle = taille / 16;
+	std::vector<std::future<void>> futures;
 	for (int i = 0; i < cycle; i++)
 	{
-		AES::decryptage(cible.data() + (16 * i), cle);
+		futures.emplace_back(std::async(std::launch::async, [](char* b16, char* cle) {AES::decryptage(b16, cle); }, cible.data() + (16 * i), cle));
 	}
+	for (auto& future : futures)future.wait();
 
 	//decompletion
 	char addTaille = cible.data()[taille - 1];
