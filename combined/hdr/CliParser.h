@@ -5,6 +5,7 @@
 #include <vector>
 #include <map>
 #include <set>
+#include <memory>
 
 /*###########################################################################################################################################################################################
 	ARGUMENTS
@@ -32,6 +33,7 @@
 		--version            -> Shows the version and exits
 ###########################################################################################################################################################################################*/
 
+typedef std::shared_ptr<cli::CliArg> pCliArg;
 
 class CliParser
 {
@@ -47,15 +49,15 @@ public:
 	bool hasArgument(char _shortFlag);
 	bool hasArgument(std::string _longName) { return false; }
 
-	const std::set<cli::CliArg>& getRegisteredArguments() { return m_registeredArguments; }
-	const std::set<cli::CliArg*>& getParsedArguments() { return m_parsedArguments; }
+	const std::set<pCliArg>& getRegisteredArguments() { return m_registeredArguments; }
+	const std::set<pCliArg>& getParsedArguments() { return m_parsedArguments; }
 
 private:
-	std::set<cli::CliArg> m_registeredArguments;
-	std::set<cli::CliArg> m_registeredSubcommands;
-	std::set<cli::CliArg*> m_parsedArguments;
+	std::set<pCliArg> m_registeredArguments;
+	std::set<std::string> m_registeredSubcommands;
+	std::set<pCliArg> m_parsedArguments;
 	std::string m_parsedSubcommand;
 	std::map<char, std::string> m_equivalents;
-	std::map<char, cli::CliArg*> m_flagLookup;
-	std::map<std::string, cli::CliArg*> m_nameLookup;
+	std::map<char, pCliArg> m_flagLookup;
+	std::map<std::string, pCliArg> m_nameLookup;
 };

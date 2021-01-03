@@ -29,6 +29,8 @@ namespace cli
 		std::optional<bool> getBool() const;
 		std::string toString() const;
 	};
+	
+	std::optional<bool> boolFromString(std::string _bool);
 }
 namespace std
 {

@@ -82,6 +82,16 @@ std::string std::to_string(bool _bool)
 	return (_bool) ? "true" : "false";
 }
 
+std::optional<bool> cli::boolFromString(std::string _bool)
+{
+	if (_bool == "true" || _bool == "1")
+		return true;
+	else if (_bool == "false" || _bool == "0")
+		return false;
+	else
+		return {};
+}
+
 std::string std::to_string(const cli::CliParam& _param)
 {
 	if (_param.getUnsignedShort().has_value())

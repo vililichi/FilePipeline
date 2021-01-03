@@ -24,6 +24,7 @@ namespace cli
 		bool isSet() const { return m_isSet; }
 		void set(bool _isSet) { m_isSet = _isSet; }
 		CliParam getParam() const;
+		void setParam(CliParam _param) { m_paramValue = _param; }
 
 		friend std::ostream& operator<<(std::ostream& _stream, const CliArg& _arg);
 
