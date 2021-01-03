@@ -1,8 +1,10 @@
 #pragma once
-#include "CliArgs.h"
+#include "CliArg.h"
 
 #include <string>
 #include <vector>
+#include <map>
+#include <set>
 
 /*###########################################################################################################################################################################################
 	ARGUMENTS
@@ -34,11 +36,26 @@
 class CliParser
 {
 public:
-	CliParser(int argc, char* argv[]);
+	CliParser();
 	~CliParser() {}
 
-	cli::sCliParams GetParams() { return cli::sCliParams(); }
-	std::vector<std::string>& getVector() { return m_arguments; }
+	bool parse(int argc, char* argv[]);
+	bool addArgument(std::string _longName, char _shortFlag = '\0', cli::CliParam _parameter = std::monostate());
+	bool addArgument(char _shortFlag, std::string _longName = std::string(), cli::CliParam _parameter = std::monostate());
+	bool addSubcommand(std::string _subcommand);
+
+	bool hasArgument(char _shortFlag);
+	bool hasArgument(std::string _longName) { return false; }
+
+	const std::set<cli::CliArg>& getRegisteredArguments() { return m_registeredArguments; }
+	const std::set<cli::CliArg*>& getParsedArguments() { return m_parsedArguments; }
+
 private:
-	std::vector<std::string> m_arguments;
+	std::set<cli::CliArg> m_registeredArguments;
+	std::set<cli::CliArg> m_registeredSubcommands;
+	std::set<cli::CliArg*> m_parsedArguments;
+	std::string m_parsedSubcommand;
+	std::map<char, std::string> m_equivalents;
+	std::map<char, cli::CliArg*> m_flagLookup;
+	std::map<std::string, cli::CliArg*> m_nameLookup;
 };
