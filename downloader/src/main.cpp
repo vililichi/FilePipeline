@@ -53,8 +53,10 @@ void download(sf::TcpSocket* socket_ptr,std::string filename)
 	chronometer chronoDecrypt;
 	chronometer chronoWrite;
 	chronometer chronoSuivie;
+	chronometer chronoTotal;
+	chronoTotal.start();
 	tachy.start();
-	unsigned char trigger = 0;
+	unsigned short trigger = 0;
 	while (tailleActu < tailleFichier)
 	{
 		//reception
@@ -79,7 +81,7 @@ void download(sf::TcpSocket* socket_ptr,std::string filename)
 		if (trigger == 0)
 		{
 			std::cout << '\r' << tailleActu << " octets\t\t| " << tailleFichier << " octets\t" << tachy.speed() << "Ko/s";
-			trigger = 255;
+			trigger = 1024;
 		}
 		else trigger--;
 		chronoSuivie.stop();
@@ -87,11 +89,13 @@ void download(sf::TcpSocket* socket_ptr,std::string filename)
 	}
 	std::cout << '\r' << tailleActu << " octets\t\t| " << tailleFichier << " octets\t" << tachy.speed() << "Ko/s";
 	tachy.stop();
+	chronoTotal.stop();
 	std::cout<<std::endl<<"vitesse moyenne: " <<tachy.avgSpeed()<<"ko/s"<< std::endl;
 	std::cout<<std::endl<<"temps de reception: "<<chronoRecept.get()<<"ms" << std::endl;
 	std::cout << "temps de decryptage: " << chronoDecrypt.get() << "ms" << std::endl;
 	std::cout << "temps d'écriture: " << chronoWrite.get() << "ms" << std::endl;
 	std::cout << "temps de suivie: " << chronoSuivie.get() << "ms" << std::endl;
+	std::cout << "temps Total: " << chronoTotal.get() << "ms" << std::endl;
 	file.close();
 }
 #pragma endregion
