@@ -4,6 +4,16 @@
 #include <iostream>
 #include <cstdlib>
 
+/*
+	TODO : Change CliParam from std::variant to a polymorphic class,
+	to allow user-defined types to be used when parsing.
+
+	CliParam should have the string-to-value conversion function,
+	the value-to-string conversion function, the to-string function,
+	the parsing validation function, and potentially a getter for
+	the exception thrown when the parsing fails, as virtual member
+	functions
+*/
 int main(int argc, char* argv[])
 {
 	CliParser cliParse;
