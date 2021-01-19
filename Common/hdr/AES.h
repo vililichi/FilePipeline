@@ -1,6 +1,9 @@
 #pragma once
 #include <random>
 
+//utilisation de la mémoire plutot que du processeur pour les multiplication GF8
+#define AESMemoryMult
+
 namespace AES
 {
 

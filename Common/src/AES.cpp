@@ -1,5 +1,9 @@
 ﻿#include "AES.h"
 
+#if defined(AESMemoryMult)
+#include "AES_mem.h"
+#endif
+
 const char nr = 14; //14 round
 const char nb = 60; //10 round + initial avec 4 mots
 const char nk = 8; //256bits
@@ -10,6 +14,9 @@ using namespace AES;
 
 const unsigned char GF8Mult(unsigned char a, unsigned char b)
 {
+	#if defined(AESMemoryMult)
+	return TABLEMULT[a][b];
+	#else
 	unsigned char retour = 0;
 	while (a && b)
 	{
@@ -19,6 +26,7 @@ const unsigned char GF8Mult(unsigned char a, unsigned char b)
 		b >>= 1;
 	}
 	return retour;
+	#endif
 }
 
 #pragma endregion GF8
