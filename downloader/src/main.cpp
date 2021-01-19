@@ -49,26 +49,49 @@ void download(sf::TcpSocket* socket_ptr,std::string filename)
 	std::fstream file(path, std::fstream::out | std::fstream::binary);
 	std::cout << 0 << "\t\t| " << tailleFichier;
 	Tachymeter tachy;
+	chronometer chronoRecept;
+	chronometer chronoDecrypt;
+	chronometer chronoWrite;
+	chronometer chronoSuivie;
 	tachy.start();
+	unsigned char trigger = 0;
 	while (tailleActu < tailleFichier)
 	{
 		//reception
+		chronoRecept.start();
 		Packet fchunk = receive(socket_ptr);
+		chronoRecept.stop();
 
 		//decryptage
+		chronoDecrypt.start();
 		AES::decryptage(fchunk, cle);
+		chronoDecrypt.stop();
 
 		//ecriture
+		chronoWrite.start();
 		file.write(fchunk.data() + fchunk.cursor(), fchunk.size());
+		chronoWrite.stop();
 
 		//suivie
+		chronoSuivie.start();
 		tailleActu += fchunk.size();
 		tachy.addSample(fchunk.size());
-		std::cout <<'\r'<< tailleActu << " octets\t\t| " << tailleFichier << " octets\t"<<tachy.speed()<<"Ko/s";
+		if (trigger == 0)
+		{
+			std::cout << '\r' << tailleActu << " octets\t\t| " << tailleFichier << " octets\t" << tachy.speed() << "Ko/s";
+			trigger = 255;
+		}
+		else trigger--;
+		chronoSuivie.stop();
 
 	}
+	std::cout << '\r' << tailleActu << " octets\t\t| " << tailleFichier << " octets\t" << tachy.speed() << "Ko/s";
 	tachy.stop();
 	std::cout<<std::endl<<"vitesse moyenne: " <<tachy.avgSpeed()<<"ko/s"<< std::endl;
+	std::cout<<std::endl<<"temps de reception: "<<chronoRecept.get()<<"ms" << std::endl;
+	std::cout << "temps de decryptage: " << chronoDecrypt.get() << "ms" << std::endl;
+	std::cout << "temps d'écriture: " << chronoWrite.get() << "ms" << std::endl;
+	std::cout << "temps de suivie: " << chronoSuivie.get() << "ms" << std::endl;
 	file.close();
 }
 #pragma endregion
