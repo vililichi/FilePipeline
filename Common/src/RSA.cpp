@@ -26,13 +26,10 @@ void RSA::generation(cle& clePrive, cle& clePublic)
     genp.join();
     genq.join();
 
-    std::cout << "p: " << p << "\n";
-    std::cout << "q: " << q << "\n";
 
     //n et phi
     inft n = p * q;
     inft phi = (p - 1) * (q - 1);
-    std::cout << "phi: " << phi << "\n";
 
     inft e;
     inft d;
@@ -71,4 +68,38 @@ void RSA::cryptage(inft& message, cle& clePublic)
 void RSA::decryptage(inft& message, cle& clePrive)
 {
     message = message.modPow(clePrive.exposant, clePrive.modulus);
+}
+
+//stockage dans packets
+Packet& operator << (Packet& packet, inft& val)
+{
+    packet << val.size();
+    packet.add( (char*) val(), val.size());
+    packet << val.isNegatif();
+    return packet;
+}
+Packet& operator << (Packet& packet, RSA::cle& val)
+{
+    packet << val.exposant;
+    packet << val.modulus;
+    return packet;
+}
+
+Packet& operator >> (Packet& packet, inft& val)
+{
+    size_t taille;
+    bool negative;
+    packet >> taille;
+    char* cptr = new char[taille];
+    packet.read(cptr, taille);
+    packet >> negative;
+
+    val = inft((unsigned char*)cptr, taille, negative);
+    return packet;
+}
+Packet& operator >> (Packet& packet, RSA::cle& val)
+{
+    packet >> val.exposant;
+    packet >> val.modulus;
+    return packet;
 }

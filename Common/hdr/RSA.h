@@ -1,5 +1,6 @@
 #pragma once
 #include "inft.h"
+#include "packet.h"
 
 namespace RSA
 {
@@ -20,3 +21,9 @@ namespace RSA
 	void decryptage(inft& message, cle& clePrive);
 
 }
+
+Packet& operator << (Packet&, inft&);
+Packet& operator << (Packet&, RSA::cle&);
+
+Packet& operator >> (Packet&, inft&);
+Packet& operator >> (Packet&, RSA::cle&);
