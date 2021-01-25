@@ -1,5 +1,7 @@
 ﻿// AVCs_5.cpp : définit le point d'entrée de l'application.
 //
+
+
 #include <iostream>
 #include <fstream>
 #include <thread>
@@ -9,6 +11,7 @@
 #include "tachymeter.h"
 #include "packetCryptation.h"
 #include "packetSendReceive.h"
+#include "RSA.h"
 
 
 #pragma region fonction commande
@@ -102,6 +105,36 @@ void download(sf::TcpSocket* socket_ptr,std::string filename)
 
 int main()
 {
+	//Gestion des clé
+	std::string clePath = "private";
+	std::string clePathPublic = "public";
+	RSA::cle clePrive;
+	RSA::cle clePublic;
+
+	if (!RSA::getKeySet(clePrive, clePublic, clePath))
+	{
+		std::cout << "aucune cle n'a ete trouvee" << std::endl;
+		creationCle:;
+		std::cout << "creation de la cle en cours, cette operation peut prendre beaucoup de temps" << std::endl;
+		std::cout << "elle peut aussi ne jamais finir" << std::endl;
+		RSA::generation(clePrive, clePublic);
+		std::cout << "fin de la generation de la cle" << std::endl << std::endl;
+		RSA::storeKeySet(clePrive, clePublic, clePath);
+		RSA::storeKey(clePublic, clePathPublic);
+	}
+
+	//test de la cle
+	{
+		inft valTest = randinft(unsigned int(2147483648), unsigned int(4294967295));
+		inft cpy = valTest;
+		RSA::cryptage(cpy, clePublic);
+		RSA::decryptage(cpy, clePrive);
+		if (!(cpy == valTest))
+		{
+			std::cout << "cle non valide" << std::endl;
+			goto creationCle;
+		}
+	}
 
 	//demande des info de connection
 	std::string ip;
