@@ -919,10 +919,7 @@ inft extendedGdc(inft a, inft b, inft& x, inft& y)
 
 	x = old_s;
 	y = old_t;
-	if (!((x * a + y * b) == old_r))
-	{
-		std::cerr << "algorythme euclide non fonctionnel\n";
-	}
+	if (!((x * a + y * b) == old_r))throw "algorythme euclide non fonctionnel";
 	return old_r;
 }
 
