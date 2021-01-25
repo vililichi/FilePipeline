@@ -12,13 +12,19 @@ namespace RSA
 	//génération de clés de 256 octets prive:=(d,n) public:=(e,n)
 	void generation(cle& clePrive, cle& clePublic);
 
-	//cryptage d'un paquet de 16 octets à l'aide d'une clé de 256 octets,le message et la taille de celui-ci varie
-	//prévoir un espace de de 128 octets pour le message crypté
+	//cryptage d'un message avec un clé public,le message et la taille de celui-ci varie beaucoup
+	//message dont la taille <= 255 octets
 	void cryptage(inft& message, cle& clePublic);
 
-	//décryptage d'un paquet de 16 octets à l'aide d'une clé de 256 octets,le message et la taille de celui-ci varie
-	//message donc la taille <= 127 octets
+	//décryptage d'un message avec un clé privée,le message et la taille de celui-ci varie beaucoup
+	//message dont la taille <= 255 octets
 	void decryptage(inft& message, cle& clePrive);
+
+	//mise en place sur le disque
+	void storeKey(cle& clecleQuelque, std::string path);
+	void storeKeySet(cle& clePrive,cle& clePublic, std::string path);
+	bool getKey(cle& cleQuelque, std::string path);
+	bool getKeySet(cle& clePrive, cle& clePublic, std::string path);
 
 }
 

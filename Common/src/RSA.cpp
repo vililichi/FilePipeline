@@ -1,5 +1,6 @@
 #include "RSA.h"
 #include <thread>
+#include <fstream>
 
 #define nbrO  128
 
@@ -36,10 +37,14 @@ void RSA::generation(cle& clePrive, cle& clePublic)
     inft y;
     while (true)
     {
-        e = randinft(a / 2, a);
-        if (extendedGdc(e, phi, d, y) == 1) break;
+        e = randinft(inft(65537), inft(65538).pow(16));
+        if (extendedGdc(e, phi, d, y) == 1)
+        {
+            if (d < 0) d = d + phi;
+            if (d.size() >= nbrO) break; //test de la taille de la clé
+        }
     }
-    if (d < 0) d = d + phi;
+    
 
     if (!((e * d % phi) == 1))
     {
@@ -95,6 +100,7 @@ Packet& operator >> (Packet& packet, inft& val)
     packet >> negative;
 
     val = inft((unsigned char*)cptr, taille, negative);
+    delete[] cptr;
     return packet;
 }
 Packet& operator >> (Packet& packet, RSA::cle& val)
@@ -102,4 +108,71 @@ Packet& operator >> (Packet& packet, RSA::cle& val)
     packet >> val.exposant;
     packet >> val.modulus;
     return packet;
+}
+
+//mise en place sur le disque
+void RSA::storeKey(cle& cleQuelque, std::string path)
+{
+    Packet pq;
+    pq << cleQuelque;
+
+    std::ofstream file;
+    file.open(path, std::ostream::out | std::ostream::binary);
+    file << pq.size();
+    file.write(pq.data(), pq.size());
+    file.close();
+    
+}
+void RSA::storeKeySet(cle& clePrive, cle& clePublic, std::string path)
+{
+    Packet pq;
+    pq << clePrive;
+    pq << clePublic;
+
+    std::ofstream file;
+    file.open(path, std::ostream::out | std::ostream::binary);
+    file << pq.size();
+    file.write(pq.data(), pq.size());
+    file.close();
+}
+bool RSA::getKey(cle& cleQuelque, std::string path)
+{
+    size_t size;
+    std::ifstream file;
+
+    file.open(path, std::ostream::in | std::ostream::binary);
+    if (!file.is_open())return false;
+
+    file >> size;
+    char* cptr = new char[size];
+    file.read(cptr, size);
+    file.close();
+
+    Packet pq(size);
+    pq.add(cptr, size);
+    pq.move(0);
+    pq >> cleQuelque;
+
+    return true;
+}
+bool RSA::getKeySet(cle& clePrive, cle& clePublic, std::string path)
+{
+    size_t size;
+    std::ifstream file;
+
+    file.open(path, std::ostream::in | std::ostream::binary);
+    if (!file.is_open())return false;
+
+    file >> size;
+    char* cptr = new char[size];
+    file.read(cptr, size);
+    file.close();
+
+    Packet pq(size);
+    pq.add(cptr, size);
+    pq.move(0);
+    pq >> clePrive;
+    pq >> clePublic;
+
+    return true;
 }
