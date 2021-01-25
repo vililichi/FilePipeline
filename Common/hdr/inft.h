@@ -2,6 +2,8 @@
 
 #include <iostream>
 
+
+
 class inft
 {
 protected:
@@ -45,6 +47,7 @@ public:
 		//addition
 	const inft operator + (const inft) const;
 	const inft operator - (const inft) const;
+	void operator -- ();
 	//multiplication
 	const inft operator * (const inft) const;
 	const inft operator / (const inft) const;
@@ -56,6 +59,8 @@ public:
 	const inft modPow(inft exposant, inft modulo) const;
 	bool isImpair() const { return valeur[0] & 0x01; }
 	bool isPrime(int precision) const;
+	const inft half() const; // /2
+	const inft dbl() const;  // *2
 
 
 };

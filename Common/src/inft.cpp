@@ -2,7 +2,51 @@
 #include "primeList.h"
 #include <random>
 
+// 64bit
+
+#if _WIN64 || __x86_64__ || __ppc64__
+#define ENVIRONMENT64
+#endif
+
 //utile
+unsigned long* getIntInft(const inft& val, size_t& taille)
+{
+	
+	if (val.size() % sizeof(long) == 0)
+	{
+		taille = val.size() / sizeof(long);
+	}
+	else
+	{
+		taille = val.size() / sizeof(long) + 1;
+	}
+	unsigned long* retour = new unsigned long [taille];
+	retour[taille - 1] = 0;
+	unsigned char* cptr = (unsigned char*)retour;
+	for (int i = 0; i < val.size(); i++)cptr[i] = val[i];
+
+	return retour;
+}
+
+unsigned short* getShortInft(const inft& val, size_t& taille)
+{
+
+	if (val.size() % sizeof(short) == 0)
+	{
+		taille = val.size() / sizeof(short);
+	}
+	else
+	{
+		taille = val.size() / sizeof(short) + 1;
+	}
+	unsigned short* retour = new unsigned short[taille];
+	retour[taille - 1] = 0;
+	unsigned char* cptr = (unsigned char*)retour;
+	for (int i = 0; i < val.size(); i++)cptr[i] = val[i];
+
+	return retour;
+}
+
 void inft::cut()
 {
 	size_t i = nbrOctet - 1;
@@ -251,6 +295,82 @@ const bool inft::operator >= (const inft val) const
 //arithmétique
 const inft inft::operator + (const inft val) const
 {
+#ifdef ENVIRONMENT64
+	//positif + negatif ou negatif + positif
+	if (isNegatif() != val.isNegatif())
+	{
+		//comparaison de taille
+		const inft* big = NULL;
+		const inft* small = NULL;
+		inft absThis = abs();
+		inft absVal = val.abs();
+		if (absThis == absVal) return inft();
+		else if (absThis > absVal) { big = this; small = &val; }
+		else { big = &val; small = this; }
+
+		//transformation int
+		size_t sizeBig;
+		size_t sizeSmall;
+		unsigned long* bigInt = getIntInft(*big, sizeBig);
+		unsigned long* smallInt = getIntInft(*small, sizeSmall);
+		unsigned long* rep = new unsigned long [sizeBig];
+
+		//soustraction
+		long long buffer = 0;
+		for (size_t i = 0; i < sizeBig; i++)
+		{
+
+			buffer += bigInt[i];
+			if (i < sizeSmall) buffer -= smallInt[i];
+			if (buffer < 0) 
+			{ 
+				buffer += 4294967296; 
+				rep[i] = *(unsigned long*)&buffer;
+				buffer = -1; 
+			}
+			else
+			{
+				rep[i] = *(unsigned long*)&buffer;
+				buffer = 0;
+			}
+			
+		}
+
+		delete[] bigInt;
+		delete[] smallInt;
+		inft out((unsigned char*)rep, sizeBig*sizeof(long), big->isNegatif());
+		delete[] rep;
+		return out;
+
+	}
+
+	//positif + positif ou negatif + negatif
+	else
+	{
+		//mesure de la taille des valeurs
+		size_t max = val.nbrOctet;
+		if (nbrOctet > val.nbrOctet) max = nbrOctet;
+
+		//création de l'espace nécessaire
+		unsigned char* cptr = new unsigned char[max + 1];
+
+		unsigned short buffer = 0;
+		for (size_t i = 0; i < max + 1; i++)
+		{
+			buffer = buffer >> 8;
+			if (i < nbrOctet) buffer += valeur[i];
+			if (i < val.nbrOctet) buffer += val.valeur[i];
+			cptr[i] = *(char*)&buffer;
+		}
+
+		inft out(cptr, max + 1, negatif);
+
+		delete[] cptr;
+		return out;
+	}
+
+	
+#else
 	//mesure de la taille des valeurs
 	size_t max = val.nbrOctet;
 	if (nbrOctet > val.nbrOctet) max = nbrOctet;
@@ -305,6 +425,7 @@ const inft inft::operator + (const inft val) const
 
 	delete[] cptr;
 	return out;
+#endif
 }
 
 const inft inft::operator - (const inft val) const
@@ -313,32 +434,96 @@ const inft inft::operator - (const inft val) const
 	nval.negatif = !nval.negatif;
 	return operator + (nval);
 }
+void inft::operator -- ()
+{
+	if (*this == 0 || negatif)
+	{
+		*this = *this + inft(-1);
+	}
+	else
+	{
+		size_t i = 0;
+		while (true)
+		{
+			if (valeur[i] == 0)
+			{
+				valeur[i] = 255;
+				i++;
+			}
+			else
+			{
+				valeur[i] --;
+				break;
+			}
+		}
+	}
+}
 
 const inft inft::operator * (const inft val) const
 {
-	size_t max = nbrOctet + val.nbrOctet;
-	unsigned char* cptr = new unsigned char[max];
-	for (size_t i = 0; i < max; i++) cptr[i] = 0;
 
-	for (size_t i = 0; i < nbrOctet; i++)
-		for (size_t j = 0; j < val.nbrOctet; j++)
+size_t tailleA;
+size_t tailleB;
+#ifdef ENVIRONMENT64
+	unsigned long* longA = getIntInft(*this, tailleA);
+	unsigned long* longB = getIntInft(val, tailleB);
+
+	unsigned long* rep = new unsigned long[tailleA + tailleB];
+
+	for (size_t i = 0; i < tailleA + tailleB; i++) rep[i] = 0;
+
+	for (size_t i = 0; i < tailleA; i++)
+		for (size_t j = 0; j < tailleB; j++)
 		{
-			unsigned short produit = (unsigned short)valeur[i] * (unsigned short)val.valeur[j];
+			unsigned long long produit = (unsigned long long)longA[i] * longB[j];
 
 			size_t k = 0;
 			while (produit != 0)
 			{
-				produit += cptr[i + j + k];
-				cptr[i + j + k] = *(unsigned char*)&produit;
-				produit = produit >> 8;
+				produit += rep[i + j + k];
+				rep[i + j + k] = *(unsigned long*)&produit;
+				produit = produit >> 32;
 				k++;
 			}
 		}
 
-	inft out(cptr, max, isNegatif() ^ val.isNegatif());
-	delete[] cptr;
+	inft out((unsigned char*)rep, (tailleA + tailleB) * sizeof(long), isNegatif() ^ val.isNegatif());
+
+	delete[] longA;
+	delete[] longB;
+	delete[] rep;
 	return out;
+#else
+	unsigned short* shortA = (unsigned short*)getShortInft(*this, tailleA);
+	unsigned short* shortB = (unsigned short*)getShortInft(val, tailleB);
+	unsigned short* rep = new unsigned short[tailleA + tailleB];
+
+	for (size_t i = 0; i < tailleA + tailleB; i++) rep[i] = 0;
+
+	for (size_t i = 0; i < tailleA; i++)
+		for (size_t j = 0; j < tailleB; j++)
+		{
+			unsigned long produit = (unsigned long)shortA[i] * shortB[j];
+
+			size_t k = 0;
+			while (produit != 0)
+			{
+				produit += rep[i + j + k];
+				rep[i + j + k] = *(unsigned short*)&produit;
+				produit = produit >> 16;
+				k++;
+			}
+		}
+
+	inft out((unsigned char*)rep, (tailleA + tailleB) * sizeof(short), isNegatif() ^ val.isNegatif());
+
+	delete[] shortA;
+	delete[] shortB;
+	delete[] rep;
+	return out;
+#endif
 }
+
 const inft inft::operator / (const inft val) const
 {
 	if (abs() < val.abs()) return inft(); //réponse triviale
@@ -404,57 +589,141 @@ const inft inft::operator / (const inft val) const
 }
 const inft inft::operator % (const inft val) const
 {
-
 	if (abs() < val.abs()) return *this; //réponse triviale
-	//taille de la réponse
-	size_t diffS = nbrOctet - val.nbrOctet + 1;
+		//assignation de l'espace
+		inft cpy((*this).abs());
 
-	//assignation de l'espace
-	inft cpy((*this).abs());
+	#ifdef ENVIRONMENT64
+		//taille de la réponse
+		size_t sizeThis;
+		delete[] getShortInft(*this, sizeThis);
+		
 
-	//dénominateur raccourcie
-	long denom = val.valeur[val.nbrOctet - 1] * 256;
-	if (val.nbrOctet >= 2) denom += val.valeur[val.nbrOctet - 2];
+		//dénominateur raccourcie
+		size_t sizeDenom;
+		unsigned short* shortDenom = getShortInft(val, sizeDenom);
+		long long  denom = (unsigned long long)shortDenom[sizeDenom - 1] * 65536;
+		if (sizeDenom >= 2) denom += shortDenom[sizeDenom - 2];
 
-	//Pour chaqu'un des éléments de la division
-	for (size_t i = diffS, j = 0; i > 0;)
-	{
-		//décrémentation
-		i--;
-		//numérateur raccourcie
-		long num = 0;
-		if (nbrOctet - j - 1 < cpy.nbrOctet)num += (long)cpy.valeur[nbrOctet - j - 1] * 256;
-		if (nbrOctet - j < cpy.nbrOctet) num += (long)cpy.valeur[nbrOctet - j] * 65536;
-		if (val.nbrOctet >= 2 && nbrOctet - j - 2 < cpy.nbrOctet) num += cpy.valeur[nbrOctet - j - 2];
+		//taille reponse
+		size_t diffS = sizeThis - sizeDenom + 1;
 
-		//estimation
-		int ps = (num / denom) - 1;
-
-		//valeur réelle
-		if (ps >= 0)
+		//Pour chaqu'un des éléments de la division
+		for (size_t i = diffS, j = 0; i > 0;)
 		{
-			//création du facteur de test
-			unsigned char* facptr = new unsigned char[val.nbrOctet + i];
-			for (size_t k = 0; k < i; k++) facptr[k] = 0;
-			for (size_t k = 0; k < val.nbrOctet; k++)facptr[k + i] = val.valeur[k];
-			inft fact(facptr, val.nbrOctet + i);
-			delete[] facptr;
-			//test avec prédiction
-			cpy = cpy - (inft(ps) * fact);
-			//test exterieur à prediction
-			inft limit = cpy - fact;
-			if (!limit.isNegatif())
+			//décrémentation
+			i--;
+			//numérateur raccourcie
+			size_t sizeNum;
+			unsigned short* shortNum = getShortInft(cpy, sizeNum);
+			unsigned long long num = 0;
+			if (sizeThis - j - 1 < sizeNum)	num += (unsigned long long)shortNum[sizeThis - j - 1] * 65536;
+			if (sizeThis - j < sizeNum)		num += (unsigned long long)shortNum[sizeThis - j] * 4294967296;
+			if (val.nbrOctet >= 2 && sizeThis - j - 2 < sizeNum)	num += shortNum[sizeThis - j - 2];
+			delete[] shortNum;
+
+			//estimation
+			unsigned long long ps = (num / denom) - 1;
+
+			//valeur réelle
+			if (ps >= 0)
 			{
-				cpy = limit;
+				//création du facteur de test
+				unsigned short* facptr = new unsigned short[sizeDenom + i];
+				for (size_t k = 0; k < i; k++) facptr[k] = 0;
+				for (size_t k = 0; k < sizeDenom; k++)facptr[k + i] = shortDenom[k];
+				inft fact((unsigned char*)facptr, (sizeDenom + i) * sizeof(short));
+				delete[] facptr;
+
+				//test avec prédiction
+				cpy = cpy - (inft((long)ps) * fact);
+
+				//test exterieur à prediction
+				inft limit = cpy - fact;
+				if (!limit.isNegatif())
+				{
+					cpy = limit;
+				}
 			}
+
+			//incrémentation
+			j++;
 		}
+		delete[] shortDenom;
+	#else
+		//taille de la réponse
+		size_t diffS = nbrOctet - val.nbrOctet + 1;
 
-		//incrémentation
-		j++;
-	}
+		//dénominateur raccourcie
+		long denom = val.valeur[val.nbrOctet - 1] * 256;
+		if (val.nbrOctet >= 2) denom += val.valeur[val.nbrOctet - 2];
 
+		//Pour chaqu'un des éléments de la division
+		for (size_t i = diffS, j = 0; i > 0;)
+		{
+			//décrémentation
+			i--;
+			//numérateur raccourcie
+			unsigned long num = 0;
+			if (nbrOctet - j - 1 < cpy.nbrOctet)	num += (unsigned long)cpy.valeur[nbrOctet - j - 1] * 256;
+			if (nbrOctet - j < cpy.nbrOctet)		num += (unsigned long)cpy.valeur[nbrOctet - j] * 65536;
+			if (val.nbrOctet >= 2 && nbrOctet - j - 2 < cpy.nbrOctet) num += cpy.valeur[nbrOctet - j - 2];
+
+			//estimation
+			int ps = (num / denom) - 1;
+
+			//valeur réelle
+			if (ps >= 0)
+			{
+				//création du facteur de test
+				unsigned char* facptr = new unsigned char[val.nbrOctet + i];
+				for (size_t k = 0; k < i; k++) facptr[k] = 0;
+				for (size_t k = 0; k < val.nbrOctet; k++)facptr[k + i] = val.valeur[k];
+				inft fact(facptr, val.nbrOctet + i);
+				delete[] facptr;
+				//test avec prédiction
+				cpy = cpy - (inft(ps) * fact);
+				//test exterieur à prediction
+				inft limit = cpy - fact;
+				if (!limit.isNegatif())
+				{
+					cpy = limit;
+				}
+			}
+
+			//incrémentation
+			j++;
+		}
+	#endif
 	cpy.negatif = negatif;
 	return cpy;
+}
+const inft inft::half() const
+{
+	//assignation de l'espace
+	unsigned char* cptr = new unsigned char[nbrOctet];	//char* contenant la réponse
+
+	//Pour chaqu'un des éléments de la réponse
+	for (size_t i = 0 ; i < nbrOctet - 1; i++) cptr[i] = valeur[i+1] << 7 | valeur[i] >> 1;
+	cptr[nbrOctet - 1] = valeur[nbrOctet - 1] >> 1;
+
+	inft out(cptr, nbrOctet, isNegatif());
+	delete[] cptr;
+	return out;
+}
+const inft inft::dbl() const
+{
+	//assignation de l'espace
+	unsigned char* cptr = new unsigned char[nbrOctet+1];	//char* contenant la réponse
+
+	//Pour chaqu'un des éléments de la réponse
+	cptr[0] = valeur[0] << 1;
+	for (size_t i = 1; i < nbrOctet ; i++) cptr[i] = valeur[i] << 1 | valeur[i-1] >> 7;
+	cptr[nbrOctet] = valeur[nbrOctet - 1] >> 7;
+
+	inft out(cptr, nbrOctet+1, isNegatif());
+	delete[] cptr;
+	return out;
 }
 
 //puissance
@@ -472,7 +741,7 @@ const inft inft::pow(inft val) const {
 		else
 		{
 			driver = driver * driver;
-			val = val / 2;
+			val = val.half();
 		}
 	}
 	return out;
@@ -484,28 +753,14 @@ const inft inft::modPow(inft exposant, inft modulo) const {
 	{
 		if (exposant.isImpair())
 		{
-			inft oOut = out;
-			out = out * driver;
-			if (!(out / driver == oOut))
-			{
-				std::cerr << "erreur multiplication\n" << std::endl;
-			}
-			out = out % modulo;
-			exposant = exposant - 1;
+			out = (out * driver)% modulo;
+			--exposant;
 		}
 
 		else
 		{
-			inft oDriver = driver;
-			driver = driver * driver;
-			if (!(driver / oDriver == oDriver))
-			{
-				std::cerr << "erreur multiplication\n" << std::endl;
-				std::cerr << "carree de " << oDriver << "\n != " << driver << "\n";
-				std::cerr << "result div :" << driver / oDriver << "\n";
-			}
-			driver = driver % modulo;
-			exposant = exposant / 2;
+			driver = (driver * driver)% modulo;
+			exposant = exposant.half();
 		}
 	}
 	return out;
@@ -526,7 +781,7 @@ bool inft::isPrime(int precision = 0) const
 	inft s = inft(0);
 	while (!d.isImpair())
 	{
-		d = d / 2;
+		d = d.half();
 		s = s + 1;
 	}
 
@@ -548,7 +803,7 @@ bool inft::isPrime(int precision = 0) const
 			for (inft k(1); k < s; k = k + 1)
 			{
 				x = (x * x) % *this;
-				d = d * 2;
+				d = d.dbl();
 
 				if (x == inft(1)) return false;
 				if (x == nM1) goto  endTest;
@@ -580,7 +835,7 @@ bool inft::isPrime(int precision = 0) const
 		for (inft k(1); k < s; k = k + 1)
 		{
 			x = (x * x) % *this;
-			d = d * 2;
+			d = d.dbl();
 
 			if (x == inft(1)) return false;
 			if (x == nM1) goto  endTestP;
@@ -608,7 +863,7 @@ inft randPrime(inft min, inft max)
 		unsigned char* cptrA = new unsigned char[nbrOctetsA];
 		for (int j = 0; j < nbrOctetsA; j++)cptrA[j] = randomMachine();
 		a = (inft(cptrA, nbrOctetsA) % (terrain)) + min;
-		delete cptrA;
+		delete[] cptrA;
 		if (a.isPrime(10)) break;
 	}
 

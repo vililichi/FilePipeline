@@ -22,8 +22,8 @@ void RSA::generation(cle& clePrive, cle& clePublic)
 
     inft p;
     inft q;
-    std::thread genp(&generateRandomPrimeIn, &p, a / 2, a);
-    std::thread genq(&generateRandomPrimeIn, &q, a / 2, a);
+    std::thread genp(&generateRandomPrimeIn, &p, a.half(), a);
+    std::thread genq(&generateRandomPrimeIn, &q, a.half(), a);
     genp.join();
     genq.join();
 
