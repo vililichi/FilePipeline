@@ -8,8 +8,8 @@ class inft
 {
 protected:
 	bool negatif; //vrai si le nombre est négatif
-	unsigned char* valeur; // valeur[0] -> octet le moins significatif, valeur[nbrOctet -1] -> octet le plus significatif
-	size_t nbrOctet;
+	unsigned long* valeur; // valeur[0] -> octet le moins significatif, valeur[nbrOctet -1] -> octet le plus significatif
+	size_t nbrLong;
 
 	void cut(); //minimise le nombre d'octet
 
@@ -17,6 +17,8 @@ public:
 	//constructeur et destructeur
 	inft();
 	//la valeur du nombre = somme(_valeur[i] * 256^i) pour tout 0<i<_nbrOctet
+	inft(unsigned long* _valeur, size_t _nbrLong, bool _negatif = false);
+	inft(unsigned short* _valeur, size_t _nbrShort, bool _negatif = false);
 	inft(unsigned char* _valeur, size_t _nbrOctet, bool _negatif = false);
 	inft(const inft& val);
 	inft(const unsigned int val);
@@ -25,11 +27,11 @@ public:
 
 	//acces aux valeurs
 	const bool isNegatif() const { return negatif; }
-	const size_t size() const { return nbrOctet; }
+	const size_t size() const { return nbrLong; }
 
-	unsigned char* operator ()() { return valeur; }	//acces au pointeur
-	unsigned char& operator [] (size_t index) { return *(valeur + index); } //acces à un octet précis
-	const unsigned char& operator [] (size_t index) const { return *(valeur + index); } //acces à un octet précis en lecture seulement
+	unsigned long* operator ()() { return valeur; }	//acces au pointeur
+	unsigned long& operator [] (size_t index) { return *(valeur + index); } //acces à un octet précis
+	const unsigned long& operator [] (size_t index) const { return *(valeur + index); } //acces à un octet précis en lecture seulement
 
 	//opérateur d'assignation
 	inft& operator = (const inft val);
@@ -37,35 +39,36 @@ public:
 	inft& operator = (const int val);
 
 	//operateur de comparaison
-	const bool operator < (const inft) const;
-	const bool operator > (const inft) const;
-	const bool operator == (const inft) const;
-	const bool operator <= (const inft) const;
-	const bool operator >= (const inft) const;
+	const bool operator < (const inft&) const;
+	const bool operator > (const inft&) const;
+	const bool operator == (const inft&) const;
+	const bool operator <= (const inft&) const;
+	const bool operator >= (const inft&) const;
 
 	//operateur arithmetique
 		//addition
-	const inft operator + (const inft) const;
-	const inft operator - (const inft) const;
+	const inft operator + (const inft&) const;
+	const inft operator - (const inft&) const;
 	void operator -- ();
 	//multiplication
-	const inft operator * (const inft) const;
-	const inft operator / (const inft) const;
-	const inft operator % (const inft) const;
+	const inft operator * (const inft&) const;
+	const inft operator / (const inft&) const;
+	const inft operator % (const inft&) const;
 
 	//fonctions utiles
 	const inft abs() const { inft out(*this); out.negatif = false; return out; }
 	const inft pow(inft val) const;
-	const inft modPow(inft exposant, inft modulo) const;
+	const inft modPow(inft exposant,const inft& modulo) const;
 	bool isImpair() const { return valeur[0] & 0x01; }
 	bool isPrime(int precision) const;
 	const inft half() const; // /2
+	const inft& halfThis(); // /= 2
 	const inft dbl() const;  // *2
 
 
 };
 
-std::ostream& operator << (std::ostream& os, const inft val);
+std::ostream& operator << (std::ostream& os, const inft& val);
 
 inft randPrime(inft min, inft max);
 inft randinft(inft min, inft max);

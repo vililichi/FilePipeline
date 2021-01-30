@@ -2,7 +2,7 @@
 #include <thread>
 #include <fstream>
 
-#define nbrO  128
+#define nbrI  32
 
 void generateRandomPrimeIn(inft* container, inft min, inft max)
 {
@@ -13,12 +13,12 @@ void RSA::generation(cle& clePrive, cle& clePublic)
 {
 
 
-    unsigned char c[nbrO];
-    for (int i = 0; i < nbrO; i++) {
-        c[i] = 255;
+    unsigned long c[nbrI];
+    for (int i = 0; i < nbrI; i++) {
+        c[i] = 4294967295;
     }
 
-    inft a(c, nbrO);
+    inft a(c, nbrI);
 
     inft p;
     inft q;
@@ -30,7 +30,7 @@ void RSA::generation(cle& clePrive, cle& clePublic)
 
     //n et phi
     inft n = p * q;
-    inft phi = (p - 1) * (q - 1);
+    inft phi = (p - inft(1)) * (q - inft(1));
 
     inft e;
     inft d;
@@ -38,15 +38,15 @@ void RSA::generation(cle& clePrive, cle& clePublic)
     while (true)
     {
         e = randinft(inft(65537), inft(65538).pow(16));
-        if (extendedGdc(e, phi, d, y) == 1)
+        if (extendedGdc(e, phi, d, y) == inft(1))
         {
-            if (d < 0) d = d + phi;
-            if (d.size() >= nbrO) break; //test de la taille de la clé
+            if (d < inft()) d = d + phi;
+            if (d.size() >= nbrI) break; //test de la taille de la clé
         }
     }
     
 
-    if (!((e * d % phi) == 1))
+    if (!((e * d % phi) == inft(1)))
     {
         std::cout << "inversion non valide\n";
     }
@@ -78,8 +78,8 @@ void RSA::decryptage(inft& message, cle& clePrive)
 //stockage dans packets
 Packet& operator << (Packet& packet, inft& val)
 {
-    packet << val.size();
-    packet.add( (char*) val(), val.size());
+    packet << val.size()*4;
+    packet.add( (char*) val(), val.size()*4);
     packet << val.isNegatif();
     return packet;
 }
