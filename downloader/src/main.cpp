@@ -115,7 +115,7 @@ int main()
 	{
 		std::cout << "aucune cle n'a ete trouvee" << std::endl;
 		creationCle:;
-		std::cout << "creation de la cle en cours, cette operation peut prendre beaucoup de temps" << std::endl;
+		std::cout << "creation de la cle en cours\ncette operation peut prendre beaucoup de temps" << std::endl;
 		std::cout << "elle peut aussi ne jamais finir" << std::endl;
 		RSA::generation(clePrive, clePublic);
 		std::cout << "fin de la generation de la cle" << std::endl << std::endl;
