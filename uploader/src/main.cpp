@@ -103,7 +103,8 @@ void socketFunction(sf::TcpSocket** tcp_ptr)
 {
 	cryptoSocket cSocket;
 	cSocket.socket_ptr = *tcp_ptr;
-	cSocket.getHandShake();
+	if (!cSocket.getHandShake())
+		(*tcp_ptr)->disconnect();
 
 	while (true)
 	{

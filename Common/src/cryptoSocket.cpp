@@ -1,5 +1,17 @@
 #include "cryptoSocket.h";
+#include <filesystem>
 
+bool isThrust(RSA::cle cle_RSA_public, std::string cle_folder)
+{
+	std::filesystem::directory_iterator dirItt(cle_folder);
+	for (auto& entry : dirItt)
+	{
+		RSA::cle cle_test;
+		RSA::getKey(cle_test, entry.path().string());
+		if (cle_test.exposant == cle_RSA_public.exposant && cle_test.modulus == cle_RSA_public.modulus) return true;
+	}
+	return false;
+}
 
 bool cryptoSocket::sendHandShake(RSA::cle cle_RSA_public, RSA::cle cle_RSA_privee)
 {
@@ -7,6 +19,17 @@ bool cryptoSocket::sendHandShake(RSA::cle cle_RSA_public, RSA::cle cle_RSA_prive
 	Packet pq;
 	pq << cle_RSA_public;
 	packetSender::send(pq, socket_ptr);
+
+	//confiance
+	pq.clear();
+	pq = packetSender::receive(socket_ptr);
+	bool confiance = false;
+	pq >> confiance;
+	if (!confiance)
+	{
+		std::cout << "le serveur ne vous fait pas confiance" << std::endl;
+		return false;
+	}
 
 	//preuve d'authenticité
 	pq.clear();
@@ -47,6 +70,17 @@ bool cryptoSocket::getHandShake()
 	pq = packetSender::receive(socket_ptr);
 	RSA::cle cle_RSA_public;
 	pq >> cle_RSA_public;
+	pq.clear();
+
+	//test de présence
+	if (!isThrust(cle_RSA_public, "thrust"))
+	{
+		pq << false;
+		packetSender::send(pq, socket_ptr);
+		return false;
+	}
+	pq << true;
+	packetSender::send(pq, socket_ptr);
 
 	//test d'authenticité
 	inft valTest = randinft(unsigned int(2147483648), unsigned int(4294967295));

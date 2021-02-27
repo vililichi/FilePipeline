@@ -136,8 +136,8 @@ int main()
 			cSocket.socket_ptr = &tsocket;
 			if (!cSocket.sendHandShake(clePublic, clePrive))
 			{
-				disconnected == true;
-				std::cout << "erreur lors de l'échange de cle" << std::endl << std::endl;
+				disconnected = true;
+				std::cout << "erreur lors de l'echange de cle" << std::endl << std::endl;
 			}
 			else std::cout << "connection etablie" << std::endl << std::endl;
 		}
