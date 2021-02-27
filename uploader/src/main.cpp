@@ -1,76 +1,10 @@
-﻿
-
-
-#include <vector>
-#include <iostream>
-#include <fstream>
+﻿#include <iostream>
 #include <thread>
-#include <chrono>
-#include <SFML/Network.hpp>
 #include "command.h"
-#include "packet.h"
 #include "list.h"
 #include "cryptoSocket.h"
-
-#pragma region fonction de communication
-void upload(cryptoSocket* csocket_ptr, std::string filename)
-{
-	//test de la validité du fichier
-	std::vector<fileInfo> liste = list();
-	bool presence = false;
-	size_t position;
-	for (size_t i = 0; i < liste.size(); i++) if (liste[i].name == filename) { presence = true; position = i; break; }
-	if (!presence)
-	{
-		//envoie de message negatif
-		Packet message;
-		message << false;
-		csocket_ptr->send(message);
-		return;
-	}
-
-	std::string path = UP_PATH;
-	path += "/" + filename;
-	std::fstream file(path, std::fstream::in | std::fstream::binary);
-
-	if (!file)
-	{
-		//envoie de message negatif
-		Packet message;
-		message << false;
-		csocket_ptr->send(message);
-		return;
-	}
-
-
-	//envoie de message positif
-	Packet prepq;
-	prepq << true << liste[position].size;
-	csocket_ptr->send(prepq);
-
-	//reception d'une confirmation
-	Packet depart;
-	depart =  csocket_ptr->receive();
-	if (depart.size() == 0 || depart.data()[0] == false) return;
-
-
-	while (!file.eof())
-	{
-		const size_t packetSize = 16 * 90;
-		Packet fchunk(packetSize);
-		const size_t maxSize = packetSize -1;
-		char data[maxSize];
-		size_t size = 0;
-
-		file.read(data, maxSize);
-		size = file.gcount();
-
-		fchunk.add(data, size);
-		csocket_ptr->send(fchunk);
-	}
-	file.close();
-}
-#pragma endregion
+#include "general.h"
+#include "load.h"
 
 #pragma region thread
 void traitementPacket(cryptoSocket* csocket_ptr, Packet& pq)
@@ -92,7 +26,7 @@ void traitementPacket(cryptoSocket* csocket_ptr, Packet& pq)
 		{
 		std::string filename;
 		pq >> filename;
-		upload(csocket_ptr, filename);
+		upload(csocket_ptr, filename, UP_PATH);
 		break;
 		}
 	default:
