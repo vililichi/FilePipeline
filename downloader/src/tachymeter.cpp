@@ -28,12 +28,13 @@ public:
 
 #define nowTime() std::chrono::steady_clock::now()
 #define toMillis std::chrono::duration_cast<std::chrono::milliseconds>
+#define toMicros std::chrono::duration_cast<std::chrono::microseconds>
 
 
 Tachymeter::Tachymeter():runing(false),totalBytesNbr(0)
 {
-	startTime = std::chrono::high_resolution_clock::now();
-	endTime = std::chrono::high_resolution_clock::now();
+	startTime = nowTime();
+	endTime = nowTime();
 }
 
 void Tachymeter::addSample(uint32_t addedBytes)
@@ -104,4 +105,36 @@ uint32_t Tachymeter::avgSpeed()
 	time_p end = endTime;
 	if (runing)end = nowTime();
 	return totalBytesNbr / (uint32_t)(toMillis(end - startTime).count());
+}
+
+
+	time_p totalTime;
+	time_p startTime;
+
+chronometer::chronometer():running(false),totalTime(0)
+{
+	startTime = std::chrono::high_resolution_clock::now();
+}
+
+void chronometer::start()
+{
+	if (running) totalTime += (uint32_t)(toMicros(nowTime() - startTime).count());
+	startTime = nowTime();
+	running = true;
+}
+void chronometer::stop()
+{
+	if (running) totalTime += (uint32_t)(toMicros(nowTime() - startTime).count());
+	running = false;
+}
+void chronometer::reset()
+{
+	totalTime = 0;
+	startTime = nowTime();
+}
+uint32_t chronometer::get()
+{
+	if (running) totalTime += (uint32_t)(toMicros(nowTime() - startTime).count());
+	startTime = nowTime();
+	return totalTime/1000;
 }

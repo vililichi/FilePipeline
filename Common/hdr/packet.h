@@ -1,10 +1,7 @@
 #pragma once
 #include <string>
 
-namespace PacketConst
-{
-	const static size_t MAXSIZE = 1454;
-}
+#define INIT_PACKET_SIZE 1440
 
 class Packet
 {
@@ -21,7 +18,7 @@ protected:
 public:
 
 	//constructeur et destructeur
-	Packet(size_t beginCapacity = PacketConst::MAXSIZE); //constructeur avec capacité de départ
+	Packet(size_t beginCapacity = INIT_PACKET_SIZE); //constructeur avec capacité de départ
 	Packet(const Packet& base);
 	~Packet();
 
@@ -40,6 +37,9 @@ public:
 
 	//modification
 	void add(char* newData, size_t dataSize); //ajoute les données à partir de la position du curseur et déplace le curseur à la fin des données
+	void popBack(size_t nbr);//retire les nbr dernier data du packet
+	void read(char* data, size_t readSize); // lit un nombre déterminer de donné et déplace le curseur
+	void clear();
 
 
 	//operateur pour écriture
@@ -60,6 +60,7 @@ public:
 	Packet& operator >> (T& data);
 	template <>
 	Packet& operator >> (std::string& data);
+
 };
 
 #pragma region << operator

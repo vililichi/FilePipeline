@@ -10,9 +10,10 @@
 #include "command.h"
 #include "packet.h"
 #include "list.h"
+#include "cryptoSocket.h"
 
 #pragma region fonction de communication
-void upload(sf::TcpSocket* socket_ptr, std::string filename)
+void upload(cryptoSocket* csocket_ptr, std::string filename)
 {
 	//test de la validité du fichier
 	std::vector<fileInfo> liste = list();
@@ -22,8 +23,9 @@ void upload(sf::TcpSocket* socket_ptr, std::string filename)
 	if (!presence)
 	{
 		//envoie de message negatif
-		char message[1] = { false };
-		socket_ptr->send(message, sizeof(char));
+		Packet message;
+		message << false;
+		csocket_ptr->send(message);
 		return;
 	}
 
@@ -34,26 +36,29 @@ void upload(sf::TcpSocket* socket_ptr, std::string filename)
 	if (!file)
 	{
 		//envoie de message negatif
-		char message[1] = { false };
-		socket_ptr->send(message, sizeof(char));
+		Packet message;
+		message << false;
+		csocket_ptr->send(message);
 		return;
 	}
 
-	//envoie de message positif
-	char message[1] = { true };
-	Packet prepq;
-	prepq << message[0] << liste[position].size;
-	socket_ptr->send(prepq.data(), prepq.size());
 
-	char depart[1];
-	size_t sizeDepart;
-	socket_ptr->receive(depart, sizeof(char), sizeDepart);
-	if (sizeDepart == 0 || depart[0] == false) return;
+	//envoie de message positif
+	Packet prepq;
+	prepq << true << liste[position].size;
+	csocket_ptr->send(prepq);
+
+	//reception d'une confirmation
+	Packet depart;
+	depart =  csocket_ptr->receive();
+	if (depart.size() == 0 || depart.data()[0] == false) return;
+
 
 	while (!file.eof())
 	{
-		Packet fchunk;
-		const size_t maxSize = PacketConst::MAXSIZE;
+		const size_t packetSize = 16 * 90;
+		Packet fchunk(packetSize);
+		const size_t maxSize = packetSize -1;
 		char data[maxSize];
 		size_t size = 0;
 
@@ -61,18 +66,14 @@ void upload(sf::TcpSocket* socket_ptr, std::string filename)
 		size = file.gcount();
 
 		fchunk.add(data, size);
-
-		socket_ptr->send(fchunk.data(), fchunk.size());
+		csocket_ptr->send(fchunk);
 	}
-	char endCom[1];
-	endCom[0] = command::UpToDown::endOfFile;
-	socket_ptr->send(endCom, sizeof(char));
 	file.close();
 }
 #pragma endregion
 
 #pragma region thread
-void traitementPacket(sf::TcpSocket* tcp_ptr, Packet& pq)
+void traitementPacket(cryptoSocket* csocket_ptr, Packet& pq)
 {
 	char commande;
 	pq >> commande;
@@ -84,14 +85,14 @@ void traitementPacket(sf::TcpSocket* tcp_ptr, Packet& pq)
 		std::vector<fileInfo> liste = list();
 		reponse << liste.size();
 		for (size_t i = 0; i < liste.size(); i++)reponse << liste[i].name<<liste[i].size;
-		tcp_ptr->send(reponse.data(), reponse.size());
+		csocket_ptr->send(reponse);
 		break;
 		}
 	case command::DownToUp::download:
 		{
 		std::string filename;
 		pq >> filename;
-		upload(tcp_ptr, filename);
+		upload(csocket_ptr, filename);
 		break;
 		}
 	default:
@@ -100,19 +101,23 @@ void traitementPacket(sf::TcpSocket* tcp_ptr, Packet& pq)
 }
 void socketFunction(sf::TcpSocket** tcp_ptr)
 {
+	cryptoSocket cSocket;
+	cSocket.socket_ptr = *tcp_ptr;
+	if (!cSocket.getHandShake())
+		(*tcp_ptr)->disconnect();
+
 	while (true)
 	{
-		char data[PacketConst::MAXSIZE];
+		char data[INIT_PACKET_SIZE];
 		size_t size;
-		Packet pq;
-		sf::Socket::Status stat = (*tcp_ptr)->receive(data,PacketConst::MAXSIZE,size);
+		
+		sf::Socket::Status stat;
+		Packet pq = cSocket.receive(&stat);
 		if (stat == sf::Socket::Status::Error || stat == sf::Socket::Status::Disconnected)
 		{
 			break;
 		}
-		pq.add(data, size);
-		pq.move(0);
-		traitementPacket(*tcp_ptr, pq);
+		traitementPacket(&cSocket, pq);
 	}
 	delete *tcp_ptr;
 	*tcp_ptr = NULL;

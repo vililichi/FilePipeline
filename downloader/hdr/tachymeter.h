@@ -29,3 +29,17 @@ public:
 	void start();
 	void stop();
 };
+
+class chronometer
+{
+protected:
+	uint32_t totalTime;
+	time_p startTime;
+	bool running;
+public:
+	chronometer();
+	void start();
+	void stop();
+	void reset();
+	uint32_t get();
+};
