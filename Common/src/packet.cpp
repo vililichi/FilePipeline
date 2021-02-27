@@ -75,6 +75,13 @@ void Packet::popBack(size_t nbr)
 	_size -= nbr;
 	if (_cursor > _size) _cursor = _size;
 }
+
+void Packet::clear()
+{
+	_size = 0;
+	_cursor = 0;
+}
+
 void Packet::read(char* data, size_t readSize)
 {
 	if ((_cursor + readSize) > _size)throw "depassement lors de la lecture";

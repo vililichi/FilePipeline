@@ -2,7 +2,7 @@
 #include <string>
 #include <vector>
 #include <filesystem>
-#include "packetSendReceive.h"
+#include "cryptoSocket.h"
 #include "general.h"
 
 #define DOWN_PATH "download"
@@ -13,15 +13,15 @@ struct fileInfo
 	uint32_t size = 0;
 };
 
-std::vector<fileInfo> list(sf::TcpSocket* socket_ptr)
+std::vector<fileInfo> list(cryptoSocket* csocket_ptr)
 {
 	//envoie de la demande
 	Packet demande;
 	demande << command::DownToUp::list;
-	send(demande, socket_ptr);
+	csocket_ptr->send(demande);
 
 	//reception de la reponse
-	Packet pq = receive(socket_ptr);
+	Packet pq = csocket_ptr->receive();
 	size_t size;
 	pq >> size;
 	std::vector<fileInfo> retour;

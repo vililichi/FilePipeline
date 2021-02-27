@@ -9,22 +9,20 @@
 #include "command.h"
 #include "list.h"
 #include "tachymeter.h"
-#include "packetCryptation.h"
-#include "packetSendReceive.h"
-#include "RSA.h"
+#include "cryptoSocket.h"
 
 
 #pragma region fonction commande
-void download(sf::TcpSocket* socket_ptr,std::string filename)
+void download(cryptoSocket* csocket_ptr,std::string filename)
 {
 	//demande d'Acces
 	Packet pq;
 	pq << command::DownToUp::download << filename;
-	send(pq, socket_ptr);
+	csocket_ptr->send(pq);
 
 	//analyse de la reponse
 	bool autorisation;
-	Packet autoInfo = receive(socket_ptr);
+	Packet autoInfo = csocket_ptr->receive();
 	autoInfo >> autorisation;
 
 	if(!autorisation)
@@ -37,25 +35,16 @@ void download(sf::TcpSocket* socket_ptr,std::string filename)
 	uint32_t tailleActu = 0;
 	autoInfo >> tailleFichier;
 
-	char cle[240];
-	autoInfo.read(cle, 32);
-
-	//expension de la cle
-	AES::expensionCle(cle);
-
 	std::string path = DOWN_PATH;
 	path += "/" + filename;
 
-	char message[1] = { true };
-	socket_ptr->send(message, sizeof(char));
+	Packet message;
+	message << true ;
+	csocket_ptr->send(message);
 
 	std::fstream file(path, std::fstream::out | std::fstream::binary);
 	std::cout << 0 << "\t\t| " << tailleFichier;
 	Tachymeter tachy;
-	chronometer chronoRecept;
-	chronometer chronoDecrypt;
-	chronometer chronoWrite;
-	chronometer chronoSuivie;
 	chronometer chronoTotal;
 	chronoTotal.start();
 	tachy.start();
@@ -63,22 +52,12 @@ void download(sf::TcpSocket* socket_ptr,std::string filename)
 	while (tailleActu < tailleFichier)
 	{
 		//reception
-		chronoRecept.start();
-		Packet fchunk = receive(socket_ptr);
-		chronoRecept.stop();
-
-		//decryptage
-		chronoDecrypt.start();
-		AES::decryptage(fchunk, cle);
-		chronoDecrypt.stop();
+		Packet fchunk = csocket_ptr->receive();
 
 		//ecriture
-		chronoWrite.start();
 		file.write(fchunk.data() + fchunk.cursor(), fchunk.size());
-		chronoWrite.stop();
 
 		//suivie
-		chronoSuivie.start();
 		tailleActu += fchunk.size();
 		tachy.addSample(fchunk.size());
 		if (trigger == 0)
@@ -87,17 +66,12 @@ void download(sf::TcpSocket* socket_ptr,std::string filename)
 			trigger = 1024;
 		}
 		else trigger--;
-		chronoSuivie.stop();
 
 	}
 	std::cout << '\r' << tailleActu << " octets\t\t| " << tailleFichier << " octets\t" << tachy.speed() << "Ko/s";
 	tachy.stop();
 	chronoTotal.stop();
 	std::cout<<std::endl<<"vitesse moyenne: " <<tachy.avgSpeed()<<"ko/s"<< std::endl;
-	std::cout<<std::endl<<"temps de reception: "<<chronoRecept.get()<<"ms" << std::endl;
-	std::cout << "temps de decryptage: " << chronoDecrypt.get() << "ms" << std::endl;
-	std::cout << "temps d'écriture: " << chronoWrite.get() << "ms" << std::endl;
-	std::cout << "temps de suivie: " << chronoSuivie.get() << "ms" << std::endl;
 	std::cout << "temps Total: " << chronoTotal.get() << "ms" << std::endl;
 	file.close();
 }
@@ -111,6 +85,7 @@ int main()
 	RSA::cle clePrive;
 	RSA::cle clePublic;
 
+	//creation de clé abscente
 	if (!RSA::getKeySet(clePrive, clePublic, clePath))
 	{
 		std::cout << "aucune cle n'a ete trouvee" << std::endl;
@@ -136,22 +111,43 @@ int main()
 		}
 	}
 
-	//demande des info de connection
-	std::string ip;
-	short port;
-	std::cout << "ip de l'hebergeur" << std::endl;
-	std::cin >> ip;
-	std::cout << "port du serveur" << std::endl;
-	std::cin >> port;
-
 	//création du socket
-	sf::TcpSocket socket;
-	socket.connect(ip, port);
+	bool disconnected = true;
+	sf::TcpSocket tsocket;
+	cryptoSocket cSocket;
+
+	while (disconnected)
+	{
+		//demande des info de connection
+		std::string ip;
+		short port;
+		std::cout << "ip de l'hebergeur" << std::endl;
+		std::cin >> ip;
+		std::cout << "port du serveur" << std::endl;
+		std::cin >> port;
+		std::cin.ignore();
+
+		//tentative de connection
+		disconnected = (tsocket.connect(ip, port) != sf::Socket::Status::Done);
+		if (disconnected) std::cout << "erreur de connection" << std::endl <<std::endl;
+		else
+		{
+			//connection sécurisée
+			cSocket.socket_ptr = &tsocket;
+			if (!cSocket.sendHandShake(clePublic, clePrive))
+			{
+				disconnected == true;
+				std::cout << "erreur lors de l'échange de cle" << std::endl << std::endl;
+			}
+			else std::cout << "connection etablie" << std::endl << std::endl;
+		}
+	}
+	
 
 	//commande
 	std::string commande = "h";
 	std::vector<std::string> p_commande = split(commande, ' ');
-	std::cin.ignore();
+
 	while (p_commande[0] != "exit" && p_commande[0] != "e")
 	{
 		//help
@@ -167,7 +163,7 @@ int main()
 		{
 
 			std::cout << "fichiers disponibles:" << std::endl;
-			std::vector<fileInfo> liste = list(&socket);
+			std::vector<fileInfo> liste = list(&cSocket);
 			for (size_t i = 0; i < liste.size(); i++) std::cout << liste[i].name<< '\t'<<liste[i].size << std::endl;
 		}
 		//download
@@ -176,7 +172,7 @@ int main()
 			if (p_commande.size() < 2) std::cout << "argument manquant" << std::endl;
 			else
 			{
-				download(&socket,p_commande[1]);
+				download(&cSocket,p_commande[1]);
 			}
 		}
 

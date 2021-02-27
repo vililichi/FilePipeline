@@ -10,11 +10,10 @@
 #include "command.h"
 #include "packet.h"
 #include "list.h"
-#include "packetCryptation.h"
-#include "packetSendReceive.h"
+#include "cryptoSocket.h"
 
 #pragma region fonction de communication
-void upload(sf::TcpSocket* socket_ptr, std::string filename)
+void upload(cryptoSocket* csocket_ptr, std::string filename)
 {
 	//test de la validité du fichier
 	std::vector<fileInfo> liste = list();
@@ -24,8 +23,9 @@ void upload(sf::TcpSocket* socket_ptr, std::string filename)
 	if (!presence)
 	{
 		//envoie de message negatif
-		char message[1] = { false };
-		socket_ptr->send(message, sizeof(char));
+		Packet message;
+		message << false;
+		csocket_ptr->send(message);
 		return;
 	}
 
@@ -36,30 +36,23 @@ void upload(sf::TcpSocket* socket_ptr, std::string filename)
 	if (!file)
 	{
 		//envoie de message negatif
-		char message[1] = { false };
-		socket_ptr->send(message, sizeof(char));
+		Packet message;
+		message << false;
+		csocket_ptr->send(message);
 		return;
 	}
 
-	//création de la clé
-	char cle[240];
-	AES::generation(cle);
 
 	//envoie de message positif
-	char message[1] = { true };
 	Packet prepq;
-	prepq << message[0] << liste[position].size;
-	prepq.add(cle, 32);
-	send(prepq, socket_ptr);
+	prepq << true << liste[position].size;
+	csocket_ptr->send(prepq);
 
 	//reception d'une confirmation
-	char depart[1];
-	size_t sizeDepart;
-	socket_ptr->receive(depart, sizeof(char), sizeDepart);
-	if (sizeDepart == 0 || depart[0] == false) return;
+	Packet depart;
+	depart =  csocket_ptr->receive();
+	if (depart.size() == 0 || depart.data()[0] == false) return;
 
-	//expension de la cle
-	AES::expensionCle(cle);
 
 	while (!file.eof())
 	{
@@ -73,16 +66,14 @@ void upload(sf::TcpSocket* socket_ptr, std::string filename)
 		size = file.gcount();
 
 		fchunk.add(data, size);
-		AES::cryptage(fchunk, cle);
-
-		send(fchunk, socket_ptr);
+		csocket_ptr->send(fchunk);
 	}
 	file.close();
 }
 #pragma endregion
 
 #pragma region thread
-void traitementPacket(sf::TcpSocket* tcp_ptr, Packet& pq)
+void traitementPacket(cryptoSocket* csocket_ptr, Packet& pq)
 {
 	char commande;
 	pq >> commande;
@@ -94,14 +85,14 @@ void traitementPacket(sf::TcpSocket* tcp_ptr, Packet& pq)
 		std::vector<fileInfo> liste = list();
 		reponse << liste.size();
 		for (size_t i = 0; i < liste.size(); i++)reponse << liste[i].name<<liste[i].size;
-		send(reponse, tcp_ptr);
+		csocket_ptr->send(reponse);
 		break;
 		}
 	case command::DownToUp::download:
 		{
 		std::string filename;
 		pq >> filename;
-		upload(tcp_ptr, filename);
+		upload(csocket_ptr, filename);
 		break;
 		}
 	default:
@@ -110,18 +101,22 @@ void traitementPacket(sf::TcpSocket* tcp_ptr, Packet& pq)
 }
 void socketFunction(sf::TcpSocket** tcp_ptr)
 {
+	cryptoSocket cSocket;
+	cSocket.socket_ptr = *tcp_ptr;
+	cSocket.getHandShake();
+
 	while (true)
 	{
 		char data[INIT_PACKET_SIZE];
 		size_t size;
 		
 		sf::Socket::Status stat;
-		Packet pq = receive(*tcp_ptr, &stat);
+		Packet pq = cSocket.receive(&stat);
 		if (stat == sf::Socket::Status::Error || stat == sf::Socket::Status::Disconnected)
 		{
 			break;
 		}
-		traitementPacket(*tcp_ptr, pq);
+		traitementPacket(&cSocket, pq);
 	}
 	delete *tcp_ptr;
 	*tcp_ptr = NULL;
