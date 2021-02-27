@@ -12,7 +12,7 @@ using namespace AES;
 
 #pragma region GF8
 
-const unsigned char GF8Mult(unsigned char a, unsigned char b)
+inline const unsigned char GF8Mult(unsigned char a, unsigned char b)
 {
 	#if defined(AESMemoryMult)
 	return TABLEMULT[a][b];
@@ -41,13 +41,13 @@ void AES::generation(char* cle)
 }
 
 //substitue 4bytes avec la S_BOXE
-void subWord(char* b4)
+inline void subWord(char* b4)
 {
 	for (char i = 0; i < 4; i++) b4[i] = S_BOX[(unsigned char)b4[i]];
 }
 
 //effecue une rotation avec 4 bytes
-void RotWord(char* b4)
+inline void RotWord(char* b4)
 {
 	char b40 = b4[0];
 	b4[0] = b4[1];
@@ -93,13 +93,13 @@ void AES::expensionCle(char* cle)
 
 #pragma region cryptage
 //substitue 16bytes avec la S_BOXE
-void subBytes(char* b16)
+inline void subBytes(char* b16)
 {
 	for (char i = 0; i < 16; i++) b16[i] = S_BOX[(unsigned char)b16[i]];
 }
 
 //effectue le decalage de range avec 16bytes
-void shiftRows(char* b16)
+inline void shiftRows(char* b16)
 {
 	char b1236[4] = { b16[1], b16[2], b16[3],b16[6] };
 	//colonne 2
@@ -120,7 +120,7 @@ void shiftRows(char* b16)
 }
 
 //effectue le brassage de colonne avec 16bytes
-void mixColumns(char* b16)
+inline void mixColumns(char* b16)
 {
 	char nb16[16];
 	for (unsigned char i = 0; i < 4; i++)
@@ -134,7 +134,7 @@ void mixColumns(char* b16)
 }
 
 //ajout de la clé
-void addRoundKey(char* b16, char* key)
+inline void addRoundKey(char* b16, char* key)
 {
 	for (unsigned char i = 0; i < 16; i++)b16[i] = b16[i] ^ key[i];
 }
