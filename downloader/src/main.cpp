@@ -12,6 +12,9 @@
 
 int main()
 {
+	//création des répertoires
+	createFolder(DOWN_PATH);
+
 	//Gestion des clé
 	std::string clePath = "private";
 	std::string clePathPublic = "public";

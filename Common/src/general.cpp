@@ -1,4 +1,5 @@
 #include "general.h"
+#include <filesystem>
 
 std::vector <std::string> split(std::string chaine, const char separateur, bool separateurMultiple)
 {
@@ -26,4 +27,10 @@ std::vector <std::string> split(std::string chaine, const char separateur, bool 
 		i = j + 1;
 	}
 	return out;
+}
+
+void createFolder(std::string path)
+{
+	if (!std::filesystem::exists(path))
+		std::filesystem::create_directory(path);
 }

@@ -73,7 +73,7 @@ bool cryptoSocket::getHandShake()
 	pq.clear();
 
 	//test de présence
-	if (!isThrust(cle_RSA_public, "thrust"))
+	if (!isThrust(cle_RSA_public, THRUST_PATH))
 	{
 		pq << false;
 		packetSender::send(pq, socket_ptr);

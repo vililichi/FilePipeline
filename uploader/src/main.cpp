@@ -86,6 +86,11 @@ void listeningFunction(sf::TcpListener* listener_ptr)
 
 int main()
 {
+	//creation des répertoires utiles
+	createFolder(UP_PATH);
+	createFolder(THRUST_PATH);
+
+
 	//instanciation
 	sf::TcpListener listener;
 

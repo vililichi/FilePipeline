@@ -1,5 +1,6 @@
 #include "load.h"
 #include "command.h"
+#include "general.h"
 #include "tachymeter.h"
 #include "list.h"
 #include <fstream>
@@ -33,6 +34,7 @@ void download(cryptoSocket* csocket_ptr, std::string filename, std::string folde
 	message << true;
 	csocket_ptr->send(message);
 
+	createFolder(folder);
 	std::fstream file(path, std::fstream::out | std::fstream::binary);
 	std::cout << 0 << "\t\t| " << tailleFichier;
 	Tachymeter tachy;
