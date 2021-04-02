@@ -5,80 +5,16 @@
 #include <iostream>
 #include <fstream>
 #include <thread>
-#include <chrono>
 #include "command.h"
+#include "general.h"
 #include "list.h"
-#include "tachymeter.h"
-#include "cryptoSocket.h"
-
-
-#pragma region fonction commande
-void download(cryptoSocket* csocket_ptr,std::string filename)
-{
-	//demande d'Acces
-	Packet pq;
-	pq << command::DownToUp::download << filename;
-	csocket_ptr->send(pq);
-
-	//analyse de la reponse
-	bool autorisation;
-	Packet autoInfo = csocket_ptr->receive();
-	autoInfo >> autorisation;
-
-	if(!autorisation)
-	{
-		std::cout << "fichier indisponible" << std::endl;
-		return;
-	}
-
-	uint32_t tailleFichier;
-	uint32_t tailleActu = 0;
-	autoInfo >> tailleFichier;
-
-	std::string path = DOWN_PATH;
-	path += "/" + filename;
-
-	Packet message;
-	message << true ;
-	csocket_ptr->send(message);
-
-	std::fstream file(path, std::fstream::out | std::fstream::binary);
-	std::cout << 0 << "\t\t| " << tailleFichier;
-	Tachymeter tachy;
-	chronometer chronoTotal;
-	chronoTotal.start();
-	tachy.start();
-	unsigned short trigger = 0;
-	while (tailleActu < tailleFichier)
-	{
-		//reception
-		Packet fchunk = csocket_ptr->receive();
-
-		//ecriture
-		file.write(fchunk.data() + fchunk.cursor(), fchunk.size());
-
-		//suivie
-		tailleActu += fchunk.size();
-		tachy.addSample(fchunk.size());
-		if (trigger == 0)
-		{
-			std::cout << '\r' << tailleActu << " octets\t\t| " << tailleFichier << " octets\t" << tachy.speed() << "Ko/s";
-			trigger = 1024;
-		}
-		else trigger--;
-
-	}
-	std::cout << '\r' << tailleActu << " octets\t\t| " << tailleFichier << " octets\t" << tachy.speed() << "Ko/s";
-	tachy.stop();
-	chronoTotal.stop();
-	std::cout<<std::endl<<"vitesse moyenne: " <<tachy.avgSpeed()<<"ko/s"<< std::endl;
-	std::cout << "temps Total: " << chronoTotal.get() << "ms" << std::endl;
-	file.close();
-}
-#pragma endregion
+#include "load.h"
 
 int main()
 {
+	//création des répertoires
+	createFolder(DOWN_PATH);
+
 	//Gestion des clé
 	std::string clePath = "private";
 	std::string clePathPublic = "public";
@@ -163,7 +99,7 @@ int main()
 		{
 
 			std::cout << "fichiers disponibles:" << std::endl;
-			std::vector<fileInfo> liste = list(&cSocket);
+			std::vector<fileInfo> liste = getlist(&cSocket);
 			for (size_t i = 0; i < liste.size(); i++) std::cout << liste[i].name<< '\t'<<liste[i].size << std::endl;
 		}
 		//download
@@ -172,7 +108,7 @@ int main()
 			if (p_commande.size() < 2) std::cout << "argument manquant" << std::endl;
 			else
 			{
-				download(&cSocket,p_commande[1]);
+				download(&cSocket,p_commande[1],DOWN_PATH);
 			}
 		}
 

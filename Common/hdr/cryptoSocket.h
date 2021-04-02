@@ -4,6 +4,8 @@
 #include "packetSendReceive.h"
 #include "RSA.h"
 
+#define THRUST_PATH "thrust"
+
 class cryptoSocket
 {
 public:
