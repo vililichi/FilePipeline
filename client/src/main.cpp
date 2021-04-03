@@ -136,29 +136,36 @@ int main()
 				{
 					std::vector<fileInfo> files = list(UP_PATH);
 					bool find = false;
-					for (size_t i = 0; i < files.size(); i++)
+					if (p_commande[3] == ".." ||split(p_commande[3], '\\', false).size() > 1 || split(p_commande[3], '/', false).size() > 1)
 					{
-						if (files[i].name == p_commande[2])
-						{
-							std::string old_path = UP_PATH;
-							old_path += "/" + p_commande[2];
-							std::string new_path = UP_PATH;
-							new_path += "/" + p_commande[3];
-							if (std::rename(old_path.c_str(), new_path.c_str()) == 0);
-							{
-								std::remove(old_path.c_str());
-								find = true;
-							}
-							break;
-						}
-					}
-					if (!find)
-					{
-						std::cout << "fichier introuvable" << std::endl;
+						std::cout << "nom invalide" << std::endl;
 					}
 					else
 					{
-						std::cout << "succes" << std::endl;
+						for (size_t i = 0; i < files.size(); i++)
+						{
+							if (files[i].name == p_commande[2])
+							{
+								std::string old_path = UP_PATH;
+								old_path += "/" + p_commande[2];
+								std::string new_path = UP_PATH;
+								new_path += "/" + p_commande[3];
+								if (std::rename(old_path.c_str(), new_path.c_str()) == 0);
+								{
+									std::remove(old_path.c_str());
+									find = true;
+								}
+								break;
+							}
+						}
+						if (!find)
+						{
+							std::cout << "fichier introuvable" << std::endl;
+						}
+						else
+						{
+							std::cout << "succes" << std::endl;
+						}
 					}
 				}
 				else if (p_commande[1] == "sv" || p_commande[1] == "server")
@@ -169,13 +176,17 @@ int main()
 
 					packet.move(0);
 					packet = cSocket.receive();
-					bool reussite = 0;
+					char reussite = 0;
 					packet >> reussite;
 
-					if (reussite)
+					if (reussite == 0)
 						std::cout << "succes" << std::endl;
-					else
+					else if (reussite == 1)
 						std::cout << "fichier introuvable" << std::endl;
+					else if (reussite == 2)
+						std::cout << "nom invalide" << std::endl;
+					else
+						std::cout << "erreur" << std::endl;
 				}
 				else
 				{

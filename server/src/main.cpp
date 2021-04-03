@@ -45,30 +45,37 @@ void traitementPacket(cryptoSocket* csocket_ptr, Packet& pq)
 
 		std::vector<fileInfo> files = list(DOWN_PATH);
 		bool find = false;
-		for (size_t i = 0; i < files.size(); i++)
-		{
-			if (files[i].name == oldName)
-			{
-				std::string old_path = DOWN_PATH;
-				old_path += "/" + oldName;
-				std::string new_path = DOWN_PATH;
-				new_path += "/" + newName;
-				if (std::rename(old_path.c_str(), new_path.c_str()) == 0);
-				{
-					std::remove(old_path.c_str());
-					find = true;
-				}
-				break;
-			}
-		}
 		Packet rep;
-		if (find)
+		if (newName == ".." || split(newName, '\\', false).size() > 1 || split(newName, '/', false).size() > 1)
 		{
-			rep << true;
+			rep << (char)2;
 		}
 		else
 		{
-			rep << false;
+			for (size_t i = 0; i < files.size(); i++)
+			{
+				if (files[i].name == oldName)
+				{
+					std::string old_path = DOWN_PATH;
+					old_path += "/" + oldName;
+					std::string new_path = DOWN_PATH;
+					new_path += "/" + newName;
+					if (std::rename(old_path.c_str(), new_path.c_str()) == 0);
+					{
+						std::remove(old_path.c_str());
+						find = true;
+					}
+					break;
+				}
+			}
+			if (find)
+			{
+				rep << (char)0;
+			}
+			else
+			{
+				rep << (char)1;
+			}
 		}
 		csocket_ptr->send(rep);
 		break;
