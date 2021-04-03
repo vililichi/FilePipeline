@@ -3,13 +3,18 @@
 #Utilisation  
 Il y a 2 exécutables permettant d'éffectuer les actions suivantes:  
 
--download.exe:  
-	-permet de se connecter à un uploader et téléchargé ses fichiers  
-	-télécharge les fichier dans le répertoire download présent dans le répertoire de l'exécutable  
+-client.exe:  
+	-permet de se connecter à un serveur et d'y envoyer ces commandes
+		-upload
+		-download
+		-list
+		-remove
+		-rename
 
--upload.exe:  
-	-permet de partager des fichiers  
-	-partage les fichiers présent dans le répertoire upload présent dans le répertoire de l'exécutable  
+-serveur.exe:  
+	-permet d'héberger un serveur
+	-recoit des commande de download et d'upload du client
+	-permet une gestion des clé d'accès et des utilisateurs
 	-nécessite l'ouverture d'un port  
 
 #Pour que la compilation fonctionne ajouter la dépendance suivante:  
