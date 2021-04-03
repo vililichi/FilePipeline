@@ -62,10 +62,9 @@ void socketFunction(sf::TcpSocket** tcp_ptr)
 	delete *tcp_ptr;
 	*tcp_ptr = NULL;
 }
-void listeningFunction(sf::TcpListener* listener_ptr)
+void listeningFunction(sf::TcpListener* listener_ptr, std::vector<sf::TcpSocket**>* socketptr_List)
 {
 	std::vector<std::thread> socketThread;
-	std::vector<sf::TcpSocket**> socketptr_List;
 	while (true)
 	{
 		sf::TcpSocket** new_socket_ptr = new sf::TcpSocket*;
@@ -79,13 +78,13 @@ void listeningFunction(sf::TcpListener* listener_ptr)
 		}
 		(*new_socket_ptr)->setBlocking(true);
 		socketThread.emplace(socketThread.end(),&socketFunction, new_socket_ptr);
-		socketptr_List.push_back(new_socket_ptr);
+		socketptr_List->push_back(new_socket_ptr);
 	}
-	for (size_t i = 0; i < socketptr_List.size(); i++)
+	for (size_t i = 0; i < socketptr_List->size(); i++)
 	{
-		if (*socketptr_List[i])(*socketptr_List[i])->disconnect();
+		if (*(*socketptr_List)[i])(*(*socketptr_List)[i])->disconnect();
 		if (socketThread[i].joinable())socketThread[i].join();
-		delete socketptr_List[i];
+		delete (*socketptr_List)[i];
 	}
 }
 #pragma endregion
@@ -107,7 +106,8 @@ int main()
 
 	//ouverture du listener
 	listener.listen(port);
-	std::thread listeningThread(&listeningFunction, &listener);
+	std::vector<sf::TcpSocket**> socketptr_List;
+	std::thread listeningThread(&listeningFunction, &listener, &socketptr_List);
 
 	std::string commande = "h";
 	std::vector<std::string> p_commande = split(commande, ' ');
@@ -119,15 +119,66 @@ int main()
 		{
 			std::cout << "exit : ferme le programme" << std::endl;
 			std::cout << "help : liste toutes les commandes" << std::endl;
+			std::cout << "kick [ip] [port] : deconnecte un utilisateur, si le port est omis, tout les utilisateurs de l'ip sont deconnectes" << std::endl;
 			std::cout << "list : liste tout les fichiers telechargeables" << std::endl;
+			std::cout << "user : liste les utilisateurs ip | port" << std::endl;
 		}
 		//liste
 		else if (p_commande[0] == "ls" || p_commande[0] == "list")
 		{
 
-			std::cout << "fichiers disponibles:" << std::endl;
+			std::cout << "fichiers disponibles :" << std::endl;
 			std::vector<fileInfo> liste = list();
 			for (size_t i = 0; i < liste.size(); i++) std::cout << liste[i].name <<'\t'<<liste[i].size<< std::endl;
+		}
+		else if (p_commande[0] == "u" || p_commande[0] == "user")
+		{
+			std::cout << "utilisateurs :" << std::endl;
+			for (size_t i = 0; i < socketptr_List.size(); i++)
+			{
+				sf::TcpSocket * socketptr = *socketptr_List[i];
+				if (socketptr)
+					std::cout << socketptr->getRemoteAddress().toString() << " | " << socketptr->getRemotePort() << std::endl;
+			}
+
+		}
+		else if (p_commande[0] == "k" || p_commande[0] == "kick")
+		{
+			if (p_commande.size() >= 2)
+			{
+				std::cout << "les utilisateurs suivant ont ete retires :" << std::endl;
+				std::string ip = p_commande[1];
+				if (p_commande.size() >= 3)
+				{
+					unsigned short port = std::stoi(p_commande[2]);
+					for (size_t i = 0; i < socketptr_List.size(); i++)
+					{
+						sf::TcpSocket* socketptr = *socketptr_List[i];
+						if (socketptr && socketptr->getRemoteAddress().toString() == ip && socketptr->getRemotePort() == port)
+						{
+							std::cout << socketptr->getRemoteAddress().toString() << " | " << socketptr->getRemotePort() << std::endl;
+							socketptr->disconnect();
+						}
+					}
+
+				}
+				else
+				{
+					for (size_t i = 0; i < socketptr_List.size(); i++)
+					{
+						sf::TcpSocket* socketptr = *socketptr_List[i];
+						if (socketptr && socketptr->getRemoteAddress().toString() == ip)
+						{
+							std::cout << socketptr->getRemoteAddress().toString() << " | " << socketptr->getRemotePort() << std::endl;
+							socketptr->disconnect();
+						}
+					}
+				}
+			}
+			else
+			{
+				std::cout << "arguments manquants :" << std::endl;
+			}
 		}
 
 		//prise de commande
