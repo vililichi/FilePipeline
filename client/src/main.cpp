@@ -94,6 +94,8 @@ int main()
 			std::cout << "exit : ferme le programme" << std::endl;
 			std::cout << "help : liste toutes les commandes" << std::endl;
 			std::cout << "list : liste tout les fichiers telechargeables et televersables" << std::endl;
+			std::cout << "remove [local|server] [fichier] : supprime le fichier" << std::endl;
+			std::cout << "rename [local|server] [fichier] [nom] : renomme le fichier avec nom" << std::endl;
 			std::cout << "upload [fichier] : televerse le fichier" << std::endl;
 		}
 		//liste
@@ -123,6 +125,123 @@ int main()
 			else
 			{
 				uploadDemand(&cSocket, p_commande[1], UP_PATH);
+			}
+		}
+		//rename
+		else if (p_commande[0] == "rn" || p_commande[0] == "rename")
+		{
+			if (p_commande.size() >= 4)
+			{
+				if (p_commande[1] == "lc" || p_commande[1] == "local")
+				{
+					std::vector<fileInfo> files = list(UP_PATH);
+					bool find = false;
+					for (size_t i = 0; i < files.size(); i++)
+					{
+						if (files[i].name == p_commande[2])
+						{
+							std::string old_path = UP_PATH;
+							old_path += "/" + p_commande[2];
+							std::string new_path = UP_PATH;
+							new_path += "/" + p_commande[3];
+							if (std::rename(old_path.c_str(), new_path.c_str()) == 0);
+							{
+								std::remove(old_path.c_str());
+								find = true;
+							}
+							break;
+						}
+					}
+					if (!find)
+					{
+						std::cout << "fichier introuvable" << std::endl;
+					}
+					else
+					{
+						std::cout << "succes" << std::endl;
+					}
+				}
+				else if (p_commande[1] == "sv" || p_commande[1] == "server")
+				{
+					Packet packet;
+					packet << command::Comm::rename<<p_commande[2]<<p_commande[3];
+					cSocket.send(packet);
+
+					packet.move(0);
+					packet = cSocket.receive();
+					bool reussite = 0;
+					packet >> reussite;
+
+					if (reussite)
+						std::cout << "succes" << std::endl;
+					else
+						std::cout << "fichier introuvable" << std::endl;
+				}
+				else
+				{
+					std::cout << "argument 1 invalide" << std::endl;
+				}
+			}
+			else
+			{
+				std::cout << "arguments invalides" << std::endl;
+			}
+		}
+		//remove
+		else if (p_commande[0] == "rm" || p_commande[0] == "remove")
+		{
+			if (p_commande.size() >= 3)
+			{
+				if (p_commande[1] == "lc" || p_commande[1] == "local")
+				{
+					std::vector<fileInfo> files = list(UP_PATH);
+					bool find = false;
+					for (size_t i = 0; i < files.size(); i++)
+					{
+						if (files[i].name == p_commande[2])
+						{
+							std::string path = UP_PATH;
+							path += "/" + p_commande[2];
+							if (std::remove(path.c_str()) == 0);
+							{
+								find = true;
+							}
+							break;
+						}
+					}
+					if (!find)
+					{
+						std::cout << "fichier introuvable" << std::endl;
+					}
+					else
+					{
+						std::cout << "succes" << std::endl;
+					}
+				}
+				else if (p_commande[1] == "sv" || p_commande[1] == "server")
+				{
+					Packet packet;
+					packet << command::Comm::remove << p_commande[2];
+					cSocket.send(packet);
+
+					packet.move(0);
+					packet = cSocket.receive();
+					bool reussite = 0;
+					packet >> reussite;
+
+					if (reussite)
+						std::cout << "succes" << std::endl;
+					else
+						std::cout << "fichier introuvable" << std::endl;
+				}
+				else
+				{
+					std::cout << "argument 1 invalide" << std::endl;
+				}
+			}
+			else
+			{
+				std::cout << "arguments invalides" << std::endl;
 			}
 		}
 

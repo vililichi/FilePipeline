@@ -6,7 +6,9 @@ namespace command
 	{
 		list = 0,
 		download = 1,
-		upload = 2
+		upload = 2,
+		rename = 3,
+		remove = 4
 	};
 
 }

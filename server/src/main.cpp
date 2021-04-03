@@ -34,7 +34,76 @@ void traitementPacket(cryptoSocket* csocket_ptr, Packet& pq)
 		std::string filename;
 		pq >> filename;
 		download(csocket_ptr, filename, DOWN_PATH);
+		break;
 		}
+	case command::Comm::rename:
+		{
+		std::string oldName;
+		std::string newName;
+		pq >> oldName;
+		pq >> newName;
+
+		std::vector<fileInfo> files = list(DOWN_PATH);
+		bool find = false;
+		for (size_t i = 0; i < files.size(); i++)
+		{
+			if (files[i].name == oldName)
+			{
+				std::string old_path = DOWN_PATH;
+				old_path += "/" + oldName;
+				std::string new_path = DOWN_PATH;
+				new_path += "/" + newName;
+				if (std::rename(old_path.c_str(), new_path.c_str()) == 0);
+				{
+					std::remove(old_path.c_str());
+					find = true;
+				}
+				break;
+			}
+		}
+		Packet rep;
+		if (find)
+		{
+			rep << true;
+		}
+		else
+		{
+			rep << false;
+		}
+		csocket_ptr->send(rep);
+		break;
+		}
+	case command::Comm::remove:
+	{
+		std::string name;
+		pq >> name;
+		std::vector<fileInfo> files = list(DOWN_PATH);
+		bool find = false;
+		for (size_t i = 0; i < files.size(); i++)
+		{
+			if (files[i].name == name)
+			{
+				std::string path = DOWN_PATH;
+				path += "/" + name;
+				if (std::remove(path.c_str()) == 0);
+				{
+					find = true;
+				}
+				break;
+			}
+		}
+		Packet rep;
+		if (find)
+		{
+			rep << true;
+		}
+		else
+		{
+			rep << false;
+		}
+		csocket_ptr->send(rep);
+		break;
+	}
 	default:
 		break;
 	}
