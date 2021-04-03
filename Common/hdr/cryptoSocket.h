@@ -5,6 +5,7 @@
 #include "RSA.h"
 
 #define THRUST_PATH "thrust"
+#define UNTRUST_PATH "unthrust"
 
 class cryptoSocket
 {
@@ -15,6 +16,9 @@ public:
 
 	void send(Packet pq, sf::Socket::Status* stat = NULL);
 	Packet receive(sf::Socket::Status* stat = NULL);
+
+	std::string getAcces() { return acces; }
 protected:
 	char cle[240];
+	std::string acces;
 };

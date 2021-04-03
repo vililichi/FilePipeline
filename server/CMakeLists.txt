@@ -3,7 +3,8 @@
 #
 cmake_minimum_required (VERSION 3.8)
 
-project ("downloader")
+project ("server")
+
 
 set (SRC_DIR "${PROJECT_SOURCE_DIR}/src")
 set (HDR_DIR "${PROJECT_SOURCE_DIR}/hdr")
@@ -21,7 +22,7 @@ file (GLOB G_HDR "${SRC_DIR}/*.h")
 file (GLOB G_COMMON_SRC "${COMMON_SRC_DIR}/*.cpp")
 file (GLOB G_COMMON_HDR "${COMMON_SRC_DIR}/*.h")
 
-# add_executable (downloader "${SRC_DIR}/*.cpp" "${HDR_DIR}/*.h" "${COMMON_SRC_DIR}/*.cpp" "${COMMON_HDR_DIR}/*.h")
+# add_executable (server "${SRC_DIR}/*.cpp" "${HDR_DIR}/*.h" "${COMMON_SRC_DIR}/*.cpp" "${COMMON_HDR_DIR}/*.h")
 add_executable ("${PROJECT_NAME}" "${G_COMMON_SRC}" "${G_COMMON_HDR}" "${G_SRC}" "${G_HDR}")
 target_link_libraries ("${PROJECT_NAME}" sfml-network sfml-system)
 

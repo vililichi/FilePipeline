@@ -2,16 +2,13 @@
 namespace command
 {
 
-	enum DownToUp : char
+	enum Comm : char
 	{
 		list = 0,
-		download = 1
-	};
-
-	enum UpToDown : char
-	{
-		file = 0,
-		endOfFile = 1
+		download = 1,
+		upload = 2,
+		rename = 3,
+		remove = 4
 	};
 
 }

@@ -8,8 +8,8 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 project ("FilePipeline")
 
 set (SFML_DIR "${CMAKE_SOURCE_DIR}/lib/SFML")
-set (DOWN_DIR "${CMAKE_SOURCE_DIR}/downloader")
-set (UP_DIR "${CMAKE_SOURCE_DIR}/uploader")
+set (CLIENT_DIR "${CMAKE_SOURCE_DIR}/client")
+set (SERVER_DIR "${CMAKE_SOURCE_DIR}/server")
 set (COMMON_DIR "${CMAKE_SOURCE_DIR}/Common")
 
 # Mettre SFML en Static
@@ -20,5 +20,5 @@ set (BUILD_SHARED_LIBS FALSE)
 
 # Incluez les sous-projets.
 add_subdirectory ("${SFML_DIR}")
-add_subdirectory ("${DOWN_DIR}")
-add_subdirectory ("${UP_DIR}")
+add_subdirectory ("${CLIENT_DIR}")
+add_subdirectory ("${SERVER_DIR}")

@@ -3,8 +3,8 @@
 #include <vector>
 #include "cryptoSocket.h"
 
-#define DOWN_PATH "download"
-#define UP_PATH "upload"
+#define DOWN_PATH "operation"
+#define UP_PATH "operation"
 
 struct fileInfo
 {
@@ -12,6 +12,6 @@ struct fileInfo
 	uint32_t size = 0;
 };
 
-std::vector<fileInfo> list();
+std::vector<fileInfo> list(std::string path = UP_PATH);
 
 std::vector<fileInfo> getlist(cryptoSocket* csocket_ptr);
