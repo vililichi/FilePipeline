@@ -4,11 +4,11 @@
 Il y a 2 exécutables permettant d'éffectuer les actions suivantes:  
 
 -client.exe:  
-	-permet de se connecter à un serveur et d'y envoyer ces commandes 
-		-upload 
-		-download 
-		-list 
-		-remove 
+	-permet de se connecter à un serveur et d'y envoyer ces commandes __
+		-upload __
+		-download __
+		-list __
+		-remove __
 		-rename 
 
 -serveur.exe:  
