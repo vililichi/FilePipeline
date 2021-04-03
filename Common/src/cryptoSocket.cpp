@@ -1,15 +1,68 @@
 #include "cryptoSocket.h";
 #include <filesystem>
+#include "list.h"
 
-bool isThrust(RSA::cle cle_RSA_public, std::string cle_folder)
+bool isThrust(RSA::cle cle_RSA_public, std::string cle_folder, std::string& acces)
 {
+	//recherche si la clé est de confiance
 	std::filesystem::directory_iterator dirItt(cle_folder);
-	for (auto& entry : dirItt)
+	std::vector<fileInfo> thrust = list(cle_folder);
+	for (int i = 0 ; i < thrust.size(); i++)
 	{
 		RSA::cle cle_test;
-		RSA::getKey(cle_test, entry.path().string());
-		if (cle_test.exposant == cle_RSA_public.exposant && cle_test.modulus == cle_RSA_public.modulus) return true;
+		RSA::getKey(cle_test, cle_folder + "/" + thrust[i].name);
+		if (cle_test.exposant == cle_RSA_public.exposant && cle_test.modulus == cle_RSA_public.modulus)
+		{
+			acces = thrust[i].name;
+			return true;
+		}
 	}
+
+	//recherche si la cle est enregistre
+	std::vector<fileInfo> uthrust = list(UNTRUST_PATH);
+	for (int i = 0; i < uthrust.size(); i++)
+	{
+		RSA::cle cle_test;
+		std::string path = UNTRUST_PATH;
+		path += "/" + uthrust[i].name;
+		RSA::getKey(cle_test, path);
+		if (cle_test.exposant == cle_RSA_public.exposant && cle_test.modulus == cle_RSA_public.modulus)
+		{
+			acces = uthrust[i].name;
+			return false;
+		}
+	}
+
+	//enregistrement de la cle
+	for (size_t i = 0; i < SIZE_MAX; i++)
+	{
+		std::string file = "k" + std::to_string(i);
+		bool present = false;
+		for (int i = 0; i < thrust.size(); i++)
+		{
+			if (file == thrust[i].name)
+			{
+				present = true;
+				break;
+			}
+		}
+		if (present) continue;
+		for (int i = 0; i < uthrust.size(); i++)
+		{
+			if (file == uthrust[i].name)
+			{
+				present = true;
+				break;
+			}
+		}
+		if (present) continue;
+		std::string path = UNTRUST_PATH;
+		path += "/" + file;
+		RSA::storeKey(cle_RSA_public, path);
+		acces = file;
+		return false;
+	}
+	acces = "";
 	return false;
 }
 
@@ -25,9 +78,11 @@ bool cryptoSocket::sendHandShake(RSA::cle cle_RSA_public, RSA::cle cle_RSA_prive
 	pq = packetSender::receive(socket_ptr);
 	bool confiance = false;
 	pq >> confiance;
+	pq >> acces;
 	if (!confiance)
 	{
 		std::cout << "le serveur ne vous fait pas confiance" << std::endl;
+		std::cout << "l'id de votre acces en attente est " << acces << std::endl;
 		return false;
 	}
 
@@ -73,13 +128,13 @@ bool cryptoSocket::getHandShake()
 	pq.clear();
 
 	//test de présence
-	if (!isThrust(cle_RSA_public, THRUST_PATH))
+	if (!isThrust(cle_RSA_public, THRUST_PATH, acces))
 	{
-		pq << false;
+		pq << false << acces;
 		packetSender::send(pq, socket_ptr);
 		return false;
 	}
-	pq << true;
+	pq << true << acces;
 	packetSender::send(pq, socket_ptr);
 
 	//test d'authenticité

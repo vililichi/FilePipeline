@@ -12,6 +12,6 @@ struct fileInfo
 	uint32_t size = 0;
 };
 
-std::vector<fileInfo> list();
+std::vector<fileInfo> list(std::string path = UP_PATH);
 
 std::vector<fileInfo> getlist(cryptoSocket* csocket_ptr);

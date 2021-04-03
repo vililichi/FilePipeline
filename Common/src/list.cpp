@@ -25,10 +25,10 @@ std::vector<fileInfo> getlist(cryptoSocket* csocket_ptr)
 	return retour;
 }
 
-std::vector<fileInfo> list()
+std::vector<fileInfo> list(std::string path)
 {
 	std::vector<fileInfo> retour;
-	std::filesystem::directory_iterator dirItt(UP_PATH);
+	std::filesystem::directory_iterator dirItt(path);
 	for (auto& entry : dirItt)
 	{
 		fileInfo fi;

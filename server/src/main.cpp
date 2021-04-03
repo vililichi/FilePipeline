@@ -39,12 +39,12 @@ void traitementPacket(cryptoSocket* csocket_ptr, Packet& pq)
 		break;
 	}
 }
-void socketFunction(sf::TcpSocket** tcp_ptr)
+void socketFunction(cryptoSocket** tcp_ptr)
 {
-	cryptoSocket cSocket;
-	cSocket.socket_ptr = *tcp_ptr;
-	if (!cSocket.getHandShake())
-		(*tcp_ptr)->disconnect();
+	cryptoSocket* cSocket;
+	cSocket = *tcp_ptr;
+	if (!cSocket->getHandShake())
+		cSocket->socket_ptr->disconnect();
 
 	while (true)
 	{
@@ -52,37 +52,38 @@ void socketFunction(sf::TcpSocket** tcp_ptr)
 		size_t size;
 		
 		sf::Socket::Status stat;
-		Packet pq = cSocket.receive(&stat);
+		Packet pq = cSocket->receive(&stat);
 		if (stat == sf::Socket::Status::Error || stat == sf::Socket::Status::Disconnected)
 		{
 			break;
 		}
-		traitementPacket(&cSocket, pq);
+		traitementPacket(cSocket, pq);
 	}
 	delete *tcp_ptr;
 	*tcp_ptr = NULL;
 }
-void listeningFunction(sf::TcpListener* listener_ptr, std::vector<sf::TcpSocket**>* socketptr_List)
+void listeningFunction(sf::TcpListener* listener_ptr, std::vector<cryptoSocket**>* socketptr_List)
 {
 	std::vector<std::thread> socketThread;
 	while (true)
 	{
-		sf::TcpSocket** new_socket_ptr = new sf::TcpSocket*;
-		*new_socket_ptr = new sf::TcpSocket;
-		sf::Socket::Status stat = listener_ptr->accept(**new_socket_ptr);
+		cryptoSocket** new_socket_ptr = new cryptoSocket*;
+		*new_socket_ptr = new cryptoSocket;
+		(*new_socket_ptr)->socket_ptr = new sf::TcpSocket;
+		sf::Socket::Status stat = listener_ptr->accept(*((*new_socket_ptr)->socket_ptr));
 		if (stat == sf::Socket::Status::Error)
 		{
 			delete *new_socket_ptr;
 			delete new_socket_ptr;
 			break;
 		}
-		(*new_socket_ptr)->setBlocking(true);
+		(*new_socket_ptr)->socket_ptr->setBlocking(true);
 		socketThread.emplace(socketThread.end(),&socketFunction, new_socket_ptr);
 		socketptr_List->push_back(new_socket_ptr);
 	}
 	for (size_t i = 0; i < socketptr_List->size(); i++)
 	{
-		if (*(*socketptr_List)[i])(*(*socketptr_List)[i])->disconnect();
+		if (*(*socketptr_List)[i])(*(*socketptr_List)[i])->socket_ptr->disconnect();
 		if (socketThread[i].joinable())socketThread[i].join();
 		delete (*socketptr_List)[i];
 	}
@@ -94,6 +95,7 @@ int main()
 	//creation des répertoires utiles
 	createFolder(UP_PATH);
 	createFolder(THRUST_PATH);
+	createFolder(UNTRUST_PATH);
 
 
 	//instanciation
@@ -106,7 +108,7 @@ int main()
 
 	//ouverture du listener
 	listener.listen(port);
-	std::vector<sf::TcpSocket**> socketptr_List;
+	std::vector<cryptoSocket**> socketptr_List;
 	std::thread listeningThread(&listeningFunction, &listener, &socketptr_List);
 
 	std::string commande = "h";
@@ -119,9 +121,12 @@ int main()
 		{
 			std::cout << "exit : ferme le programme" << std::endl;
 			std::cout << "help : liste toutes les commandes" << std::endl;
+			std::cout << "key  : leste toutes les cle d'acces" << std::endl;
 			std::cout << "kick [ip] [port] : deconnecte un utilisateur, si le port est omis, tout les utilisateurs de l'ip sont deconnectes" << std::endl;
 			std::cout << "list : liste tout les fichiers telechargeables" << std::endl;
-			std::cout << "user : liste les utilisateurs ip | port" << std::endl;
+			std::cout << "thrust [cle] : accorde l'acces a la cle" << std::endl;
+			std::cout << "unthrust [cle] : retire l'acces a la cle" << std::endl;
+			std::cout << "user : liste les utilisateurs ip | port | acces" << std::endl;
 		}
 		//liste
 		else if (p_commande[0] == "ls" || p_commande[0] == "list")
@@ -131,18 +136,20 @@ int main()
 			std::vector<fileInfo> liste = list();
 			for (size_t i = 0; i < liste.size(); i++) std::cout << liste[i].name <<'\t'<<liste[i].size<< std::endl;
 		}
+		//user
 		else if (p_commande[0] == "u" || p_commande[0] == "user")
 		{
 			std::cout << "utilisateurs :" << std::endl;
 			for (size_t i = 0; i < socketptr_List.size(); i++)
 			{
-				sf::TcpSocket * socketptr = *socketptr_List[i];
+				cryptoSocket * socketptr = *socketptr_List[i];
 				if (socketptr)
-					std::cout << socketptr->getRemoteAddress().toString() << " | " << socketptr->getRemotePort() << std::endl;
+					std::cout << socketptr->socket_ptr->getRemoteAddress().toString() << " | " << socketptr->socket_ptr->getRemotePort() << " | " << socketptr ->getAcces() << std::endl;
 			}
 
 		}
-		else if (p_commande[0] == "k" || p_commande[0] == "kick")
+		//kick
+		else if (p_commande[0] == "kck" || p_commande[0] == "kick")
 		{
 			if (p_commande.size() >= 2)
 			{
@@ -153,11 +160,11 @@ int main()
 					unsigned short port = std::stoi(p_commande[2]);
 					for (size_t i = 0; i < socketptr_List.size(); i++)
 					{
-						sf::TcpSocket* socketptr = *socketptr_List[i];
-						if (socketptr && socketptr->getRemoteAddress().toString() == ip && socketptr->getRemotePort() == port)
+						cryptoSocket* socketptr = *socketptr_List[i];
+						if (socketptr && socketptr->socket_ptr->getRemoteAddress().toString() == ip && socketptr->socket_ptr->getRemotePort() == port)
 						{
-							std::cout << socketptr->getRemoteAddress().toString() << " | " << socketptr->getRemotePort() << std::endl;
-							socketptr->disconnect();
+							std::cout << socketptr->socket_ptr->getRemoteAddress().toString() << " | " << socketptr->socket_ptr->getRemotePort() << std::endl;
+							socketptr->socket_ptr->disconnect();
 						}
 					}
 
@@ -166,11 +173,11 @@ int main()
 				{
 					for (size_t i = 0; i < socketptr_List.size(); i++)
 					{
-						sf::TcpSocket* socketptr = *socketptr_List[i];
-						if (socketptr && socketptr->getRemoteAddress().toString() == ip)
+						cryptoSocket* socketptr = *socketptr_List[i];
+						if (socketptr && socketptr->socket_ptr->getRemoteAddress().toString() == ip)
 						{
-							std::cout << socketptr->getRemoteAddress().toString() << " | " << socketptr->getRemotePort() << std::endl;
-							socketptr->disconnect();
+							std::cout << socketptr->socket_ptr->getRemoteAddress().toString() << " | " << socketptr->socket_ptr->getRemotePort() << std::endl;
+							socketptr->socket_ptr->disconnect();
 						}
 					}
 				}
@@ -178,6 +185,85 @@ int main()
 			else
 			{
 				std::cout << "arguments manquants :" << std::endl;
+			}
+		}
+		//key
+		else if (p_commande[0] == "ky" || p_commande[0] == "key")
+		{
+			std::vector<fileInfo> thrust = list(THRUST_PATH);
+			std::vector<fileInfo> uthrust = list(UNTRUST_PATH);
+			std::cout << "acces :" << std::endl;
+			for (int i = 0; i < thrust.size(); i++)
+			{
+				std::cout << thrust[i].name << std::endl;
+			}
+			std::cout << std::endl;
+			std::cout << "acces en attente :" << std::endl;
+			for (int i = 0; i < uthrust.size(); i++)
+			{
+				std::cout << uthrust[i].name << std::endl;
+			}
+		}
+		//thrust
+		else if (p_commande[0] == "t" || p_commande[0] == "thrust")
+		{
+			if (p_commande.size() >= 2)
+			{
+				std::vector<fileInfo> uthrust = list(UNTRUST_PATH);
+				bool find = false;
+				for (size_t i = 0; i < uthrust.size(); i++)
+				{
+					if (uthrust[i].name == p_commande[1])
+					{
+						std::string old_path = UNTRUST_PATH;
+						old_path += "/" + p_commande[1];
+						std::string new_path = THRUST_PATH;
+						new_path += "/" + p_commande[1];
+						std::rename(old_path.c_str(), new_path.c_str());
+						std::remove(old_path.c_str());
+						find = true;
+						break;
+					}
+				}
+				if(!find)
+				{
+					std::cout << "cle introuvable" << std::endl;
+				}
+				else
+				{
+					std::cout << "accord de l'acces de la cle" << std::endl;
+				}
+			}
+		}
+		//unthrust
+		else if (p_commande[0] == "ut" || p_commande[0] == "unthrust")
+		{
+			if (p_commande.size() >= 2)
+			{
+				std::vector<fileInfo> uthrust = list(THRUST_PATH);
+				bool find = false;
+				for (size_t i = 0; i < uthrust.size(); i++)
+				{
+					if (uthrust[i].name == p_commande[1])
+					{
+						std::string old_path = THRUST_PATH;
+						old_path += "/" + p_commande[1];
+						std::string new_path = UNTRUST_PATH;
+						new_path += "/" + p_commande[1];
+						std::rename(old_path.c_str(), new_path.c_str());
+						std::remove(old_path.c_str());
+						find = true;
+						break;
+					}
+				}
+				if (!find)
+				{
+					std::cout << "cle introuvable" << std::endl;
+				}
+				else
+				{
+					std::cout << "retrait de l'acces de la cle" << std::endl;
+				}
 			}
 		}
 
