@@ -199,10 +199,11 @@ int main()
 	std::string commande = "h";
 	std::vector<std::string> p_commande = split(commande, ' ');
 	std::cin.ignore();
-	while (p_commande[0] != "exit" && p_commande[0] != "e")
+	while (!(p_commande.size() > 0 && p_commande[0] == "exit") && !(p_commande.size() > 0 && p_commande[0] == "e") )
 	{
+		if (p_commande.size() == 0);
 		//help
-		if (p_commande[0] == "h" || p_commande[0] == "help")
+		else if (p_commande[0] == "h" || p_commande[0] == "help")
 		{
 			std::cout << "exit : ferme le programme" << std::endl;
 			std::cout << "help : liste toutes les commandes" << std::endl;
