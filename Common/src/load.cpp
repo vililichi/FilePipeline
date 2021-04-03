@@ -5,11 +5,11 @@
 #include "list.h"
 #include <fstream>
 
-void download(cryptoSocket* csocket_ptr, std::string filename, std::string folder)
+void download(cryptoSocket* csocket_ptr, std::string filename, std::string folder, bool ui)
 {
 	//demande d'Acces
 	Packet pq;
-	pq << command::DownToUp::download << filename;
+	pq << command::Comm::download << filename;
 	csocket_ptr->send(pq);
 
 	//analyse de la reponse
@@ -19,7 +19,7 @@ void download(cryptoSocket* csocket_ptr, std::string filename, std::string folde
 
 	if (!autorisation)
 	{
-		std::cout << "fichier indisponible" << std::endl;
+		if (ui) std::cout << "fichier indisponible" << std::endl;
 		return;
 	}
 
@@ -35,13 +35,18 @@ void download(cryptoSocket* csocket_ptr, std::string filename, std::string folde
 	csocket_ptr->send(message);
 
 	createFolder(folder);
-	std::fstream file(path, std::fstream::out | std::fstream::binary);
-	std::cout << 0 << "\t\t| " << tailleFichier;
+	std::fstream file(path, std::fstream::out | std::fstream::binary); 
+
 	Tachymeter tachy;
 	chronometer chronoTotal;
-	chronoTotal.start();
-	tachy.start();
 	unsigned short trigger = 0;
+	if (ui)
+	{
+		std::cout << 0 << "\t\t| " << tailleFichier;
+		chronoTotal.start();
+		tachy.start();
+	}
+
 	while (tailleActu < tailleFichier)
 	{
 		//reception
@@ -52,24 +57,31 @@ void download(cryptoSocket* csocket_ptr, std::string filename, std::string folde
 
 		//suivie
 		tailleActu += fchunk.size();
-		tachy.addSample(fchunk.size());
-		if (trigger == 0)
+		if (ui)
 		{
-			std::cout << '\r' << tailleActu << " octets\t\t| " << tailleFichier << " octets\t" << tachy.speed() << "Ko/s";
-			trigger = 1024;
+			tachy.addSample(fchunk.size());
+		
+			if (trigger == 0)
+			{
+				std::cout << '\r' << tailleActu << " octets\t\t| " << tailleFichier << " octets\t" << tachy.speed() << "Ko/s";
+				trigger = 1024;
+			}
+			else trigger--;
 		}
-		else trigger--;
 
 	}
-	std::cout << '\r' << tailleActu << " octets\t\t| " << tailleFichier << " octets\t" << tachy.speed() << "Ko/s";
-	tachy.stop();
-	chronoTotal.stop();
-	std::cout << std::endl << "vitesse moyenne: " << tachy.avgSpeed() << "ko/s" << std::endl;
-	std::cout << "temps Total: " << chronoTotal.get() << "ms" << std::endl;
+	if (ui) 
+	{
+		std::cout << '\r' << tailleActu << " octets\t\t| " << tailleFichier << " octets\t" << tachy.speed() << "Ko/s";
+		tachy.stop();
+		chronoTotal.stop();
+		std::cout << std::endl << "vitesse moyenne: " << tachy.avgSpeed() << "ko/s" << std::endl;
+		std::cout << "temps Total: " << chronoTotal.get() << "ms" << std::endl;
+	}
 	file.close();
 }
 
-void upload(cryptoSocket* csocket_ptr, std::string filename,std::string folder)
+void upload(cryptoSocket* csocket_ptr, std::string filename,std::string folder, bool ui)
 {
 	//test de la validité du fichier
 	std::vector<fileInfo> liste = list();
@@ -101,7 +113,8 @@ void upload(cryptoSocket* csocket_ptr, std::string filename,std::string folder)
 
 	//envoie de message positif
 	Packet prepq;
-	prepq << true << liste[position].size;
+	uint32_t tailleFichier = liste[position].size;
+	prepq << true << tailleFichier;
 	csocket_ptr->send(prepq);
 
 	//reception d'une confirmation
@@ -109,6 +122,17 @@ void upload(cryptoSocket* csocket_ptr, std::string filename,std::string folder)
 	depart = csocket_ptr->receive();
 	if (depart.size() == 0 || depart.data()[0] == false) return;
 
+	//téléversement
+	Tachymeter tachy;
+	chronometer chronoTotal;
+	unsigned short trigger = 0;
+	uint32_t tailleActu = 0;
+	if (ui)
+	{
+		std::cout << 0 << "\t\t| " << tailleFichier;
+		chronoTotal.start();
+		tachy.start();
+	}
 
 	while (!file.eof())
 	{
@@ -123,6 +147,76 @@ void upload(cryptoSocket* csocket_ptr, std::string filename,std::string folder)
 
 		fchunk.add(data, size);
 		csocket_ptr->send(fchunk);
+
+		//suivie
+		if (ui)
+		{
+
+			tailleActu += fchunk.size();
+			tachy.addSample(fchunk.size());
+
+			if (trigger == 0)
+			{
+				std::cout << '\r' << tailleActu << " octets\t\t| " << tailleFichier << " octets\t" << tachy.speed() << "Ko/s";
+				trigger = 1024;
+			}
+			else trigger--;
+		}
+	}
+	if (ui)
+	{
+		std::cout << '\r' << tailleActu << " octets\t\t| " << tailleFichier << " octets\t" << tachy.speed() << "Ko/s";
+		tachy.stop();
+		chronoTotal.stop();
+		std::cout << std::endl << "vitesse moyenne: " << tachy.avgSpeed() << "ko/s" << std::endl;
+		std::cout << "temps Total: " << chronoTotal.get() << "ms" << std::endl;
 	}
 	file.close();
+}
+
+void uploadDemand(cryptoSocket* csocket_ptr, std::string filename, std::string folder)
+{
+	//vérification de la demande de fichier
+	std::vector<fileInfo> liste = list();
+	bool presence = false;
+	size_t position;
+	for (size_t i = 0; i < liste.size(); i++) if (liste[i].name == filename) { presence = true; position = i; break; }
+	if (!presence)
+	{
+		std::cout << "Fichier non valide";
+		return;
+	}
+
+	//Envoie d'une demande d'upload
+	Packet pq;
+	pq << command::Comm::upload << filename;
+	csocket_ptr->send(pq);
+
+	//attente d'une reponse
+	Packet rep = csocket_ptr->receive();
+	char commande;
+	rep >> commande;
+	if (commande != command::Comm::download)
+	{
+		std::cout << "reponse invalide" << std::endl;
+		pq.move(0);
+		pq << false;
+		csocket_ptr->send(pq);
+		return;
+	}
+
+	//validation du fichier
+	std::string filename_demande;
+	rep >> filename_demande;
+	if(filename != filename_demande)
+	{
+		std::cout << "fichier non conforme" << std::endl;
+		pq.move(0);
+		pq << false;
+		csocket_ptr->send(pq);
+		return;
+	}
+
+	//téléversement
+	upload(csocket_ptr, filename, UP_PATH, true);
 }

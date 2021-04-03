@@ -3,8 +3,8 @@
 #include <vector>
 #include "cryptoSocket.h"
 
-#define DOWN_PATH "download"
-#define UP_PATH "upload"
+#define DOWN_PATH "operation"
+#define UP_PATH "operation"
 
 struct fileInfo
 {

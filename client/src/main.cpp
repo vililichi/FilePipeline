@@ -14,6 +14,7 @@ int main()
 {
 	//création des répertoires
 	createFolder(DOWN_PATH);
+	createFolder(UP_PATH);
 
 	//Gestion des clé
 	std::string clePath = "private";
@@ -92,15 +93,19 @@ int main()
 			std::cout << "download [fichier] : telecharge le fichier" << std::endl;
 			std::cout << "exit : ferme le programme" << std::endl;
 			std::cout << "help : liste toutes les commandes" << std::endl;
-			std::cout << "list : liste tout les fichiers telechargeables" << std::endl;
+			std::cout << "list : liste tout les fichiers telechargeables et televersables" << std::endl;
+			std::cout << "upload [fichier] : televerse le fichier" << std::endl;
 		}
 		//liste
 		else if (p_commande[0] == "ls" || p_commande[0] == "list")
 		{
-
-			std::cout << "fichiers disponibles:" << std::endl;
-			std::vector<fileInfo> liste = getlist(&cSocket);
-			for (size_t i = 0; i < liste.size(); i++) std::cout << liste[i].name<< '\t'<<liste[i].size << std::endl;
+			std::cout << "fichiers locaux :" << std::endl;
+			std::vector<fileInfo> listeLoc = list();
+			for (size_t i = 0; i < listeLoc.size(); i++) std::cout << listeLoc[i].name << '\t' << listeLoc[i].size << std::endl;
+			std::cout << std::endl;
+			std::cout << "fichiers serveurs :" << std::endl;
+			std::vector<fileInfo> listeServ = getlist(&cSocket);
+			for (size_t i = 0; i < listeServ.size(); i++) std::cout << listeServ[i].name<< '\t'<< listeServ[i].size << std::endl;
 		}
 		//download
 		else if (p_commande[0] == "dwn" || p_commande[0] == "download")
@@ -108,7 +113,16 @@ int main()
 			if (p_commande.size() < 2) std::cout << "argument manquant" << std::endl;
 			else
 			{
-				download(&cSocket,p_commande[1],DOWN_PATH);
+				download(&cSocket,p_commande[1],DOWN_PATH,true);
+			}
+		}
+		//upload
+		else if (p_commande[0] == "up" || p_commande[0] == "upload")
+		{
+			if (p_commande.size() < 2) std::cout << "argument manquant" << std::endl;
+			else
+			{
+				uploadDemand(&cSocket, p_commande[1], UP_PATH);
 			}
 		}
 

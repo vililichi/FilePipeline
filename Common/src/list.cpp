@@ -7,7 +7,7 @@ std::vector<fileInfo> getlist(cryptoSocket* csocket_ptr)
 {
 	//envoie de la demande
 	Packet demande;
-	demande << command::DownToUp::list;
+	demande << command::Comm::list;
 	csocket_ptr->send(demande);
 
 	//reception de la reponse

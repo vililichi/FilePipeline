@@ -13,7 +13,7 @@ void traitementPacket(cryptoSocket* csocket_ptr, Packet& pq)
 	pq >> commande;
 	switch (commande)
 	{
-	case command::DownToUp::list:
+	case command::Comm::list:
 		{
 		Packet reponse;
 		std::vector<fileInfo> liste = list();
@@ -22,12 +22,18 @@ void traitementPacket(cryptoSocket* csocket_ptr, Packet& pq)
 		csocket_ptr->send(reponse);
 		break;
 		}
-	case command::DownToUp::download:
+	case command::Comm::download:
 		{
 		std::string filename;
 		pq >> filename;
 		upload(csocket_ptr, filename, UP_PATH);
 		break;
+		}
+	case command::Comm::upload:
+		{
+		std::string filename;
+		pq >> filename;
+		download(csocket_ptr, filename, DOWN_PATH);
 		}
 	default:
 		break;
