@@ -194,6 +194,14 @@ void uploadDemand(cryptoSocket* csocket_ptr, std::string filename, std::string f
 
 	//attente d'une reponse
 	Packet rep = csocket_ptr->receive();
+	bool fichierOk;
+	rep >> fichierOk;
+	if (!fichierOk)
+	{
+		std::cout << "destination refusee" << std::endl;
+	}
+	rep.move(0);
+	rep = csocket_ptr->receive();
 	char commande;
 	rep >> commande;
 	if (commande != command::Comm::download)

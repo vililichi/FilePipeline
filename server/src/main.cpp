@@ -33,6 +33,15 @@ void traitementPacket(cryptoSocket* csocket_ptr, Packet& pq)
 		{
 		std::string filename;
 		pq >> filename;
+		pq.clear();
+		if (filename == ".." || split(filename, '\\', false).size() > 1 || split(filename, '/', false).size() > 1)
+		{
+			pq << false;
+			csocket_ptr->send(pq);
+			return;
+		}
+		pq << true;
+		csocket_ptr->send(pq);
 		download(csocket_ptr, filename, DOWN_PATH);
 		break;
 		}
