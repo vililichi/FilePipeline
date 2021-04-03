@@ -5,11 +5,11 @@ Il y a 2 exécutables permettant d'éffectuer les actions suivantes:
 
 -client.exe:  
 	-permet de se connecter à un serveur et d'y envoyer ces commandes  
-		-upload  
-		-download  
-		-list  
-		-remove  
-		-rename  
+		*upload  
+		*download  
+		*list  
+		*remove  
+		*rename  
 
 -serveur.exe:  
 	-permet d'héberger un serveur  
