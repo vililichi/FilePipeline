@@ -1,6 +1,7 @@
 #include "inft.h"
 #include "primeList.h"
 #include <random>
+#include <algorithm>
 
 
 void inft::cut()
@@ -25,10 +26,7 @@ inft::inft() : nbrLong(1), negatif(false)
 inft::inft(unsigned long* _valeur, size_t _nbrLong, bool _negatif) : nbrLong(_nbrLong), negatif(_negatif)
 {
 	valeur = new unsigned long[nbrLong];
-	for (size_t i = 0; i < nbrLong; i++)
-	{
-		valeur[i] = _valeur[i];
-	}
+	std::copy(_valeur, _valeur + nbrLong, valeur);
 	cut();
 }
 inft::inft(unsigned short* _valeur, size_t _nbrShort, bool _negatif)
@@ -45,10 +43,8 @@ inft::inft(unsigned short* _valeur, size_t _nbrShort, bool _negatif)
 		valeur = new unsigned long[nbrLong];
 	}
 	unsigned short* valShort = (unsigned short*)valeur;
-	for (size_t i = 0; i < _nbrShort; i++)
-	{
-		valShort[i] = _valeur[i];
-	}
+	std::copy(_valeur, _valeur + _nbrShort, valShort);
+
 	negatif = _negatif;
 }
 inft::inft(unsigned char* _valeur, size_t _nbrOctet, bool _negatif)
@@ -65,22 +61,27 @@ inft::inft(unsigned char* _valeur, size_t _nbrOctet, bool _negatif)
 		valeur = new unsigned long[nbrLong];
 	}
 	unsigned char* valChar = (unsigned char*)valeur;
-	for (size_t i = 0; i < _nbrOctet; i++)
-	{
-		valChar[i] = _valeur[i];
-	}
+	std::copy(_valeur, _valeur + _nbrOctet, valChar);
+
 	negatif = _negatif;
 }
 inft::inft(const inft& val)
 {
 	nbrLong = val.nbrLong;
-
 	valeur = new unsigned long [nbrLong];
 
-	for (size_t i = 0; i < nbrLong; i++)
-	{
-		valeur[i] = val.valeur[i];
-	}
+	std::copy(val.valeur, val.valeur + nbrLong, valeur);
+
+	negatif = val.negatif;
+	cut();
+}
+inft::inft(inft&& val) noexcept
+{
+	nbrLong = val.nbrLong;
+
+	valeur = val.valeur;
+	val.valeur = nullptr;
+	val.nbrLong = 0;
 
 	negatif = val.negatif;
 	cut();
@@ -121,23 +122,37 @@ inft::~inft()
 
 //opérateur d'assignation
 
-inft& inft::operator = (const inft val)
+inft& inft::operator = (const inft& val)
 {
+	if (this == &val) return *this;
 	nbrLong = val.nbrLong;
 
 	delete[] valeur;
 	valeur = new unsigned long[nbrLong];
 
-	for (size_t i = 0; i < nbrLong; i++)
-	{
-		valeur[i] = val.valeur[i];
-	}
+	std::copy(val.valeur, val.valeur + nbrLong, valeur);
+
+	negatif = val.negatif;
+	cut();
+
+	return *this;
+}
+
+inft& inft::operator = (inft&& val) noexcept
+{
+	nbrLong = val.nbrLong;
+
+	delete[] valeur;
+	valeur = val.valeur;
+	val.valeur = nullptr;
+	val.nbrLong = 0;
 
 	negatif = val.negatif;
 
 	cut();
 	return *this;
 }
+
 inft& inft::operator = (const unsigned int val)
 {
 	nbrLong = 1;
