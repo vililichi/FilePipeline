@@ -49,8 +49,8 @@ public:
 
 	//operateur arithmetique
 		//addition
-	const inft operator + (const inft&) const;
-	const inft operator - (const inft&) const;
+	inline const inft operator + (const inft&) const;
+	inline const inft operator - (const inft&) const;
 	void operator -- ();
 	//multiplication
 	const inft operator * (const inft&) const;
@@ -66,7 +66,12 @@ public:
 	const inft half() const; // /2
 	const inft& halfThis(); // /= 2
 	const inft dbl() const;  // *2
+	inline void swap(inft&);
+private:
+	inft(size_t _nbrLong, bool _negatif) :nbrLong(_nbrLong), negatif(_negatif) { valeur = new unsigned long[nbrLong];}; //crée un inft de taille déterminé ayant des valeurs indéterminé
+	inft(bool _negatif, size_t _nbrLong) :nbrLong(_nbrLong), negatif(_negatif) { valeur = new unsigned long[nbrLong](); }; //crée un inft de taille déterminé ayant 0 comme valeur
 
+	friend const inft  additiveComp(const inft& A, const inft& B, bool invB = false);
 
 };
 

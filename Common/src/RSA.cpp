@@ -19,7 +19,6 @@ void RSA::generation(cle& clePrive, cle& clePublic)
     }
 
     inft a(c, nbrI);
-
     inft p;
     inft q;
     std::thread genp(&generateRandomPrimeIn, &p, a.half(), a);

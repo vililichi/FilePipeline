@@ -12,7 +12,7 @@ using namespace AES;
 
 #pragma region GF8
 
-inline const unsigned char GF8Mult(unsigned char a, unsigned char b)
+inline const unsigned char GF8Mult(const unsigned char a, const unsigned char b)
 {
 	#if defined(AESMemoryMult)
 	return TABLEMULT[a][b];
@@ -57,7 +57,7 @@ inline void RotWord(char* b4)
 }
 
 //génère un mot de 4 bytes dans buffer_b4
-void Rcon(unsigned char i, char* buffer_b4)
+void Rcon(const unsigned char i, char* buffer_b4)
 {
 	unsigned char x(0x01);
 	for (unsigned char j = 1; j < i; j++) x = GF8Mult(x,0x02);
