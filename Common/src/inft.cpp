@@ -293,7 +293,7 @@ const bool inft::operator >= (const inft& val) const
 }
 
 //arithmétique
-const inft  additiveComp(const inft& A, const inft& B, bool invB)
+inft  additiveComp(const inft& A, const inft& B, bool invB)
 {
 	//positif + negatif ou negatif + positif
 	if (A.isNegatif() != B.isNegatif())
@@ -370,12 +370,12 @@ const inft  additiveComp(const inft& A, const inft& B, bool invB)
 	}
 }
 
-const inft inft::operator + (const inft& val) const
+inft inft::operator + (const inft& val) const
 {
 	return additiveComp(*this, val, false);
 }
 
-const inft inft::operator - (const inft& val) const
+inft inft::operator - (const inft& val) const
 {
 	const_cast<inft*>(&val)->negatif = !const_cast<inft*>(&val)->negatif;
 	return additiveComp(*this, val, true);
@@ -406,7 +406,7 @@ void inft::operator -- ()
 	}
 }
 
-const inft inft::operator * (const inft& val) const
+inft inft::operator * (const inft& val) const
 {
 	inft out(isNegatif() ^ val.isNegatif(), nbrLong + val.nbrLong);
 
@@ -429,7 +429,7 @@ const inft inft::operator * (const inft& val) const
 	return out;
 }
 
-const inft inft::operator / (const inft& val) const
+inft inft::operator / (const inft& val) const
 {
 
 	if (abs() < val.abs()) return inft(); //réponse triviale
@@ -506,7 +506,7 @@ const inft inft::operator / (const inft& val) const
 	delete[] cptr;
 	return out;
 }
-const inft inft::operator % (const inft& val) const
+inft inft::operator % (const inft& val) const
 {
 	if (abs() < val.abs()) return *this; //réponse triviale
 		//assignation de l'espace
@@ -574,7 +574,7 @@ const inft inft::operator % (const inft& val) const
 	cpy.negatif = negatif;
 	return cpy;
 }
-const inft inft::half() const
+inft inft::half() const
 {
 	//assignation de l'espace
 	inft out(nbrLong, false);
@@ -586,14 +586,14 @@ const inft inft::half() const
 	out.cut();
 	return out;
 }
-const inft& inft::halfThis()
+inft& inft::halfThis()
 {
 	for (size_t i = 0; i < nbrLong - 1; i++)valeur[i] = valeur[i + 1] << 31 | valeur[i] >> 1;
 	valeur[nbrLong - 1] = valeur[nbrLong - 1] >> 1;
 	cut();
 	return *this;
 }
-const inft inft::dbl() const
+inft inft::dbl() const
 {
 	//assignation de l'espace
 	inft out(nbrLong + 1, false);
@@ -609,7 +609,7 @@ const inft inft::dbl() const
 }
 
 //puissance
-const inft inft::pow(inft val) const {
+inft inft::pow(inft val) const {
 	inft out(1);
 	inft driver = *this;
 	while (val > 0)
@@ -625,7 +625,7 @@ const inft inft::pow(inft val) const {
 	}
 	return out;
 }
-const inft inft::modPow(inft exposant, const inft& modulo) const {
+inft inft::modPow(inft exposant, const inft& modulo) const {
 	inft out(1);
 	inft driver = *this % modulo;
 	while (exposant > inft())
