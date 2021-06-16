@@ -12,7 +12,7 @@ using namespace AES;
 
 #pragma region GF8
 
-inline const unsigned char GF8Mult(unsigned char a, unsigned char b)
+inline const unsigned char GF8Mult(const unsigned char a, const unsigned char b)
 {
 	#if defined(AESMemoryMult)
 	return TABLEMULT[a][b];
@@ -57,7 +57,7 @@ inline void RotWord(char* b4)
 }
 
 //génère un mot de 4 bytes dans buffer_b4
-void Rcon(unsigned char i, char* buffer_b4)
+void Rcon(const unsigned char i, char* buffer_b4)
 {
 	unsigned char x(0x01);
 	for (unsigned char j = 1; j < i; j++) x = GF8Mult(x,0x02);
@@ -130,7 +130,8 @@ inline void mixColumns(char* b16)
 		nb16[(4 * i) + 2] = b16[4 * i] ^ b16[(4 * i) + 1] ^ GF8Mult(0x02, b16[(4 * i) + 2]) ^ GF8Mult(0x03, b16[(4 * i) + 3]);
 		nb16[(4 * i) + 3] = GF8Mult(0x03, b16[4 * i]) ^ b16[(4 * i) + 1] ^ b16[(4 * i) + 2] ^ GF8Mult(0x02, b16[(4 * i) + 3]);
 	}
-	for (int i = 0; i < 16; i++)b16[i] = nb16[i];
+	//for (int i = 0; i < 16; i++)b16[i] = nb16[i];
+	std::copy(nb16, nb16 + 16, b16);
 }
 
 //ajout de la clé
@@ -193,12 +194,15 @@ void invMixColumns(char* b16)
 	char nb16[16];
 	for (unsigned char i = 0; i < 4; i++)
 	{
-		nb16[4 * i] = GF8Mult(0x0e, b16[4 * i]) ^ GF8Mult(0x0b, b16[(4 * i) + 1]) ^ GF8Mult(0x0d, b16[(4 * i) + 2]) ^ GF8Mult(0x09, b16[(4 * i) + 3]);
-		nb16[(4 * i) + 1] = GF8Mult(0x09, b16[4 * i]) ^ GF8Mult(0x0e, b16[(4 * i) + 1]) ^ GF8Mult(0x0b, b16[(4 * i) + 2]) ^ GF8Mult(0x0d, b16[(4 * i) + 3]);
-		nb16[(4 * i) + 2] = GF8Mult(0x0d, b16[4 * i]) ^ GF8Mult(0x09, b16[(4 * i) + 1]) ^ GF8Mult(0x0e, b16[(4 * i) + 2]) ^ GF8Mult(0x0b, b16[(4 * i) + 3]);
-		nb16[(4 * i) + 3] = GF8Mult(0x0b, b16[4 * i]) ^ GF8Mult(0x0d, b16[(4 * i) + 1]) ^ GF8Mult(0x09, b16[(4 * i) + 2]) ^ GF8Mult(0x0e, b16[(4 * i) + 3]);
+		const char nb1 = GF8Mult(0x0e, b16[4 * i]) ^ GF8Mult(0x0b, b16[(4 * i) + 1]) ^ GF8Mult(0x0d, b16[(4 * i) + 2]) ^ GF8Mult(0x09, b16[(4 * i) + 3]);
+		const char nb2 = GF8Mult(0x09, b16[4 * i]) ^ GF8Mult(0x0e, b16[(4 * i) + 1]) ^ GF8Mult(0x0b, b16[(4 * i) + 2]) ^ GF8Mult(0x0d, b16[(4 * i) + 3]);
+		const char nb3 = GF8Mult(0x0d, b16[4 * i]) ^ GF8Mult(0x09, b16[(4 * i) + 1]) ^ GF8Mult(0x0e, b16[(4 * i) + 2]) ^ GF8Mult(0x0b, b16[(4 * i) + 3]);
+		b16[(4 * i) + 3] = GF8Mult(0x0b, b16[4 * i]) ^ GF8Mult(0x0d, b16[(4 * i) + 1]) ^ GF8Mult(0x09, b16[(4 * i) + 2]) ^ GF8Mult(0x0e, b16[(4 * i) + 3]);
+
+		b16[4 * i] = nb1;
+		b16[(4 * i) + 1] = nb2;
+		b16[(4 * i) + 2] = nb3;
 	}
-	for (int i = 0; i < 16; i++)b16[i] = nb16[i];
 }
 
 //cryptage de 16 bytes avec une clé étendue

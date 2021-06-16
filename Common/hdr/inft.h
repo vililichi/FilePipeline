@@ -21,6 +21,7 @@ public:
 	inft(unsigned short* _valeur, size_t _nbrShort, bool _negatif = false);
 	inft(unsigned char* _valeur, size_t _nbrOctet, bool _negatif = false);
 	inft(const inft& val);
+	inft(inft&& val) noexcept;
 	inft(const unsigned int val);
 	inft(const int val);
 	~inft();
@@ -34,7 +35,8 @@ public:
 	const unsigned long& operator [] (size_t index) const { return *(valeur + index); } //acces à un octet précis en lecture seulement
 
 	//opérateur d'assignation
-	inft& operator = (const inft val);
+	inft& operator = (const inft& val);
+	inft& operator = (inft&& val) noexcept;
 	inft& operator = (const unsigned int val);
 	inft& operator = (const int val);
 
@@ -47,24 +49,29 @@ public:
 
 	//operateur arithmetique
 		//addition
-	const inft operator + (const inft&) const;
-	const inft operator - (const inft&) const;
+	inline inft operator + (const inft&) const;
+	inline inft operator - (const inft&) const;
 	void operator -- ();
 	//multiplication
-	const inft operator * (const inft&) const;
-	const inft operator / (const inft&) const;
-	const inft operator % (const inft&) const;
+	inft operator * (const inft&) const;
+	inft operator / (const inft&) const;
+	inft operator % (const inft&) const;
 
 	//fonctions utiles
-	const inft abs() const { inft out(*this); out.negatif = false; return out; }
-	const inft pow(inft val) const;
-	const inft modPow(inft exposant,const inft& modulo) const;
+	inft abs() const { inft out(*this); out.negatif = false; return out; }
+	inft pow(inft val) const;
+	inft modPow(inft exposant,const inft& modulo) const;
 	bool isImpair() const { return valeur[0] & 0x01; }
 	bool isPrime(int precision) const;
-	const inft half() const; // /2
-	const inft& halfThis(); // /= 2
-	const inft dbl() const;  // *2
+	inft half() const; // /2
+	inft& halfThis(); // /= 2
+	inft dbl() const;  // *2
+	inline void swap(inft&);
+private:
+	inft(size_t _nbrLong, bool _negatif) :nbrLong(_nbrLong), negatif(_negatif) { valeur = new unsigned long[nbrLong];}; //crée un inft de taille déterminé ayant des valeurs indéterminé
+	inft(bool _negatif, size_t _nbrLong) :nbrLong(_nbrLong), negatif(_negatif) { valeur = new unsigned long[nbrLong](); }; //crée un inft de taille déterminé ayant 0 comme valeur
 
+	friend inft  additiveComp(const inft& A, const inft& B, bool invB = false);
 
 };
 
