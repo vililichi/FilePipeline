@@ -4,14 +4,13 @@
 
 Packet::Packet(size_t beginCapacity) :_capacity(beginCapacity), _size(0), _cursor(0)
 {
-	_data = new char[_capacity];
-	for (size_t i = 0; i < _capacity; i++)_data[i] = 0;
+	_data = new char[_capacity]();
 }
 
 Packet::Packet(const Packet& base) :_capacity(base._capacity), _size(base._size), _cursor(base._cursor)
 {
 	_data = new char[_capacity];
-	for (size_t i = 0; i < _capacity; i++)_data[i] = base._data[i];
+	std::copy(base._data, base._data + _capacity, _data);
 }
 
 
@@ -26,10 +25,8 @@ void Packet::setCapacity(size_t newCapacity)
 	if ((new_data = new char[newCapacity]) == nullptr)throw "echec de l'assignation";
 	size_t limit = _size;
 	if (newCapacity < limit) limit = newCapacity;
-	for (size_t i = 0; i < limit; i++)
-	{
-		new_data[i] = _data[i];
-	}
+	std::copy(_data, _data + limit, new_data);
+
 	delete[] _data;
 	_data = new_data;
 	new_data = nullptr;
@@ -49,11 +46,8 @@ void Packet::add(char* newData, size_t dataSize)
 	if (newSize > _capacity) setCapacity(newSize);
 	if (newSize > _size) _size = newSize;
 	//ajout des données
-	for (size_t i = 0; i < dataSize; i++)
-	{
-		_data[_cursor] = newData[i];
-		_cursor++;
-	}
+	std::copy(newData, newData + dataSize, _data + _cursor);
+	_cursor += dataSize;
 }
 
 Packet& Packet::operator = (const Packet& _b) {
@@ -64,8 +58,7 @@ Packet& Packet::operator = (const Packet& _b) {
 	_size = _b._size;
 	_cursor = _b._cursor;
 
-	for (size_t i = 0; i < _capacity; i++)
-		_data[i] = _b._data[i];
+	std::copy(_b._data, _b._data + _capacity, _data);
 	return *this;
 }
 
@@ -85,10 +78,8 @@ void Packet::clear()
 void Packet::read(char* data, size_t readSize)
 {
 	if ((_cursor + readSize) > _size)throw "depassement lors de la lecture";
-	for (int i = 0; i < readSize; i++)
-	{
-		data[i] = _data[i+_cursor];
-	}
+
+	std::copy(_data + _cursor, _data + _cursor + readSize, data);
 	_cursor += readSize;
 
 }
