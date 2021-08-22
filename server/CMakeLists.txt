@@ -1,7 +1,9 @@
 ﻿# CMakeList.txt : projet CMake pour AVCs, incluez la source et définissez
 # la logique spécifique au projet ici.
 #
-cmake_minimum_required (VERSION 3.8)
+cmake_minimum_required (VERSION 3.10)
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 project ("server")
 
