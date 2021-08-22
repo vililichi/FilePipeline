@@ -3,7 +3,7 @@
 #include <filesystem>
 #include "general.h"
 
-std::vector<fileInfo> getlist(cryptoSocket* csocket_ptr)
+std::vector<fileInfo> getlist(CryptoSocket* csocket_ptr)
 {
 	//envoie de la demande
 	Packet demande;

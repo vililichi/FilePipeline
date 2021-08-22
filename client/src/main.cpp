@@ -51,7 +51,7 @@ int main()
 	//création du socket
 	bool disconnected = true;
 	sf::TcpSocket tsocket;
-	cryptoSocket cSocket;
+	CryptoSocket cSocket;
 
 	while (disconnected)
 	{
@@ -70,7 +70,7 @@ int main()
 		else
 		{
 			//connection sécurisée
-			cSocket.socket_ptr = &tsocket;
+			cSocket.m_socket_ptr = &tsocket;
 			if (!cSocket.sendHandShake(clePublic, clePrive))
 			{
 				disconnected = true;

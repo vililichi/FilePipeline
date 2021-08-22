@@ -5,7 +5,7 @@
 #include "list.h"
 #include <fstream>
 
-void download(cryptoSocket* csocket_ptr, std::string filename, std::string folder, bool ui)
+void download(CryptoSocket* csocket_ptr, std::string filename, std::string folder, bool ui)
 {
 	//demande d'Acces
 	Packet pq;
@@ -81,7 +81,7 @@ void download(cryptoSocket* csocket_ptr, std::string filename, std::string folde
 	file.close();
 }
 
-void upload(cryptoSocket* csocket_ptr, std::string filename,std::string folder, bool ui)
+void upload(CryptoSocket* csocket_ptr, std::string filename,std::string folder, bool ui)
 {
 	//test de la validité du fichier
 	std::vector<fileInfo> liste = list();
@@ -174,7 +174,7 @@ void upload(cryptoSocket* csocket_ptr, std::string filename,std::string folder, 
 	file.close();
 }
 
-void uploadDemand(cryptoSocket* csocket_ptr, std::string filename, std::string folder)
+void uploadDemand(CryptoSocket* csocket_ptr, std::string filename, std::string folder)
 {
 	//vérification de la demande de fichier
 	std::vector<fileInfo> liste = list();

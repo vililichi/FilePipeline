@@ -1,9 +1,9 @@
 #pragma once
 #include <string>
-#include "Communication/cryptoSocket.h"
+#include "Communication/CryptoSocket.h"
 
-void download(cryptoSocket* csocket_ptr, std::string filename, std::string folder, bool ui = false);
+void download(CryptoSocket* csocket_ptr, std::string filename, std::string folder, bool ui = false);
 
-void upload(cryptoSocket* csocket_ptr, std::string filename, std::string folder, bool ui = false);
+void upload(CryptoSocket* csocket_ptr, std::string filename, std::string folder, bool ui = false);
 
-void uploadDemand(cryptoSocket* csocket_ptr, std::string filename, std::string folder);
+void uploadDemand(CryptoSocket* csocket_ptr, std::string filename, std::string folder);

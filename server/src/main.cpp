@@ -6,7 +6,7 @@
 #include "General/load.h"
 
 #pragma region thread
-void traitementPacket(cryptoSocket* csocket_ptr, Packet& pq)
+void traitementPacket(CryptoSocket* csocket_ptr, Packet& pq)
 {
 	char commande;
 	pq >> commande;
@@ -123,12 +123,12 @@ void traitementPacket(cryptoSocket* csocket_ptr, Packet& pq)
 		break;
 	}
 }
-void socketFunction(cryptoSocket** tcp_ptr)
+void socketFunction(CryptoSocket** tcp_ptr)
 {
-	cryptoSocket* cSocket;
+	CryptoSocket* cSocket;
 	cSocket = *tcp_ptr;
 	if (!cSocket->getHandShake())
-		cSocket->socket_ptr->disconnect();
+		cSocket->m_socket_ptr->disconnect();
 
 	while (true)
 	{
@@ -136,7 +136,7 @@ void socketFunction(cryptoSocket** tcp_ptr)
 		size_t size;
 		
 		sf::Socket::Status stat;
-		Packet pq = cSocket->receive(&stat);
+		Packet pq = cSocket->receive(stat);
 		if (stat == sf::Socket::Status::Error || stat == sf::Socket::Status::Disconnected)
 		{
 			break;
@@ -146,28 +146,28 @@ void socketFunction(cryptoSocket** tcp_ptr)
 	delete *tcp_ptr;
 	*tcp_ptr = NULL;
 }
-void listeningFunction(sf::TcpListener* listener_ptr, std::vector<cryptoSocket**>* socketptr_List)
+void listeningFunction(sf::TcpListener* listener_ptr, std::vector<CryptoSocket**>* socketptr_List)
 {
 	std::vector<std::thread> socketThread;
 	while (true)
 	{
-		cryptoSocket** new_socket_ptr = new cryptoSocket*;
-		*new_socket_ptr = new cryptoSocket;
-		(*new_socket_ptr)->socket_ptr = new sf::TcpSocket;
-		sf::Socket::Status stat = listener_ptr->accept(*((*new_socket_ptr)->socket_ptr));
+		CryptoSocket** new_socket_ptr = new CryptoSocket*;
+		*new_socket_ptr = new CryptoSocket;
+		(*new_socket_ptr)->m_socket_ptr = new sf::TcpSocket;
+		sf::Socket::Status stat = listener_ptr->accept(*((*new_socket_ptr)->m_socket_ptr));
 		if (stat == sf::Socket::Status::Error)
 		{
 			delete *new_socket_ptr;
 			delete new_socket_ptr;
 			break;
 		}
-		(*new_socket_ptr)->socket_ptr->setBlocking(true);
+		(*new_socket_ptr)->m_socket_ptr->setBlocking(true);
 		socketThread.emplace(socketThread.end(),&socketFunction, new_socket_ptr);
 		socketptr_List->push_back(new_socket_ptr);
 	}
 	for (size_t i = 0; i < socketptr_List->size(); i++)
 	{
-		if (*(*socketptr_List)[i])(*(*socketptr_List)[i])->socket_ptr->disconnect();
+		if (*(*socketptr_List)[i])(*(*socketptr_List)[i])->m_socket_ptr->disconnect();
 		if (socketThread[i].joinable())socketThread[i].join();
 		delete (*socketptr_List)[i];
 	}
@@ -192,7 +192,7 @@ int main()
 
 	//ouverture du listener
 	listener.listen(port);
-	std::vector<cryptoSocket**> socketptr_List;
+	std::vector<CryptoSocket**> socketptr_List;
 	std::thread listeningThread(&listeningFunction, &listener, &socketptr_List);
 
 	std::string commande = "h";
@@ -227,9 +227,9 @@ int main()
 			std::cout << "utilisateurs :" << std::endl;
 			for (size_t i = 0; i < socketptr_List.size(); i++)
 			{
-				cryptoSocket * socketptr = *socketptr_List[i];
+				CryptoSocket * socketptr = *socketptr_List[i];
 				if (socketptr)
-					std::cout << socketptr->socket_ptr->getRemoteAddress().toString() << " | " << socketptr->socket_ptr->getRemotePort() << " | " << socketptr ->getAcces() << std::endl;
+					std::cout << socketptr->m_socket_ptr->getRemoteAddress().toString() << " | " << socketptr->m_socket_ptr->getRemotePort() << " | " << socketptr ->getAcces() << std::endl;
 			}
 
 		}
@@ -245,11 +245,11 @@ int main()
 					unsigned short port = std::stoi(p_commande[2]);
 					for (size_t i = 0; i < socketptr_List.size(); i++)
 					{
-						cryptoSocket* socketptr = *socketptr_List[i];
-						if (socketptr && socketptr->socket_ptr->getRemoteAddress().toString() == ip && socketptr->socket_ptr->getRemotePort() == port)
+						CryptoSocket* socketptr = *socketptr_List[i];
+						if (socketptr && socketptr->m_socket_ptr->getRemoteAddress().toString() == ip && socketptr->m_socket_ptr->getRemotePort() == port)
 						{
-							std::cout << socketptr->socket_ptr->getRemoteAddress().toString() << " | " << socketptr->socket_ptr->getRemotePort() << std::endl;
-							socketptr->socket_ptr->disconnect();
+							std::cout << socketptr->m_socket_ptr->getRemoteAddress().toString() << " | " << socketptr->m_socket_ptr->getRemotePort() << std::endl;
+							socketptr->m_socket_ptr->disconnect();
 						}
 					}
 
@@ -258,11 +258,11 @@ int main()
 				{
 					for (size_t i = 0; i < socketptr_List.size(); i++)
 					{
-						cryptoSocket* socketptr = *socketptr_List[i];
-						if (socketptr && socketptr->socket_ptr->getRemoteAddress().toString() == ip)
+						CryptoSocket* socketptr = *socketptr_List[i];
+						if (socketptr && socketptr->m_socket_ptr->getRemoteAddress().toString() == ip)
 						{
-							std::cout << socketptr->socket_ptr->getRemoteAddress().toString() << " | " << socketptr->socket_ptr->getRemotePort() << std::endl;
-							socketptr->socket_ptr->disconnect();
+							std::cout << socketptr->m_socket_ptr->getRemoteAddress().toString() << " | " << socketptr->m_socket_ptr->getRemotePort() << std::endl;
+							socketptr->m_socket_ptr->disconnect();
 						}
 					}
 				}
