@@ -5,10 +5,10 @@
 #include <iostream>
 #include <fstream>
 #include <thread>
-#include "command.h"
-#include "general.h"
-#include "list.h"
-#include "load.h"
+#include "Communication/command.h"
+#include "General/general.h"
+#include "General/list.h"
+#include "General/load.h"
 
 int main()
 {

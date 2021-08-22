@@ -1,5 +1,5 @@
 #include "load.h"
-#include "command.h"
+#include "Communication/command.h"
 #include "general.h"
 #include "tachymeter.h"
 #include "list.h"

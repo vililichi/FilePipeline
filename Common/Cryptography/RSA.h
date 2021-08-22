@@ -1,6 +1,7 @@
 #pragma once
 #include "inft.h"
-#include "packet.h"
+
+class Packet;
 
 namespace RSA
 {

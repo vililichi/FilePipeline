@@ -1,10 +1,9 @@
 ﻿#include <iostream>
 #include <thread>
-#include "command.h"
-#include "list.h"
-#include "cryptoSocket.h"
-#include "general.h"
-#include "load.h"
+#include "Communication/command.h"
+#include "General/list.h"
+#include "General/general.h"
+#include "General/load.h"
 
 #pragma region thread
 void traitementPacket(cryptoSocket* csocket_ptr, Packet& pq)

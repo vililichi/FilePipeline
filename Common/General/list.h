@@ -1,7 +1,7 @@
 #pragma once
 #include <string>
 #include <vector>
-#include "cryptoSocket.h"
+#include "Communication/cryptoSocket.h"
 
 #define DOWN_PATH "operation"
 #define UP_PATH "operation"

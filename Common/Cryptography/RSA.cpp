@@ -1,4 +1,5 @@
 #include "RSA.h"
+#include "Communication/packet.h"
 #include <thread>
 #include <fstream>
 

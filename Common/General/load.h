@@ -1,6 +1,6 @@
 #pragma once
 #include <string>
-#include "cryptoSocket.h"
+#include "Communication/cryptoSocket.h"
 
 void download(cryptoSocket* csocket_ptr, std::string filename, std::string folder, bool ui = false);
 
