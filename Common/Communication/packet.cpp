@@ -2,86 +2,85 @@
 
 #pragma region méthode
 
-Packet::Packet(size_t beginCapacity) :_capacity(beginCapacity), _size(0), _cursor(0)
+Packet::Packet(const size_t beginCapacity) :m_capacity(beginCapacity), m_size(0), m_cursor(0)
 {
-	_data = new char[_capacity]();
+	m_data = new char[m_capacity]();
 }
 
-Packet::Packet(const Packet& base) :_capacity(base._capacity), _size(base._size), _cursor(base._cursor)
+Packet::Packet(const Packet& base) :m_capacity(base.m_capacity), m_size(base.m_size), m_cursor(base.m_cursor)
 {
-	_data = new char[_capacity];
-	std::copy(base._data, base._data + _capacity, _data);
+	m_data = new char[m_capacity];
+	std::copy(base.m_data, base.m_data + m_capacity, m_data);
 }
 
 
 Packet::~Packet()
 {
-	delete[] _data;
+	delete[] m_data;
 }
 
-void Packet::setCapacity(size_t newCapacity)
+void Packet::setCapacity(const size_t newCapacity_)
 {
 	char* new_data = nullptr;
-	if ((new_data = new char[newCapacity]) == nullptr)throw "echec de l'assignation";
-	size_t limit = _size;
-	if (newCapacity < limit) limit = newCapacity;
-	std::copy(_data, _data + limit, new_data);
+	if ((new_data = new char[newCapacity_]) == nullptr)throw "echec de l'assignation";
+	size_t limit = m_size;
+	if (newCapacity_ < limit) limit = newCapacity_;
+	std::copy(m_data, m_data + limit, new_data);
 
-	delete[] _data;
-	_data = new_data;
+	delete[] m_data;
+	m_data = new_data;
 	new_data = nullptr;
-	_capacity = newCapacity;
+	m_capacity = newCapacity_;
 }
 
-void Packet::move(size_t position)
+void Packet::move(size_t position_) const
 {
-	if (position > _size) throw "deplacement à l'exterieur des donnees";
-	_cursor = position;
+	if (position_ > m_size) throw "deplacement à l'exterieur des donnees";
+	m_cursor = position_;
 }
 
-void Packet::add(char* newData, size_t dataSize)
+void Packet::add(const char* const newData_, const size_t dataSize_)
 {
 	//modification de la taille et de la capacité
-	size_t newSize = _cursor + dataSize;
-	if (newSize > _capacity) setCapacity(newSize);
-	if (newSize > _size) _size = newSize;
+	size_t newSize = m_cursor + dataSize_;
+	if (newSize > m_capacity) setCapacity(newSize);
+	if (newSize > m_size) m_size = newSize;
 	//ajout des données
-	std::copy(newData, newData + dataSize, _data + _cursor);
-	_cursor += dataSize;
+	std::copy(newData_, newData_ + dataSize_, m_data + m_cursor);
+	m_cursor += dataSize_;
 }
 
-Packet& Packet::operator = (const Packet& _b) {
-	delete[] _data;
-	_data = new char[_capacity];
+Packet& Packet::operator = (const Packet& b_) {
+	delete[] m_data;
+	m_data = new char[m_capacity];
 
-	_capacity = _b._capacity;
-	_size = _b._size;
-	_cursor = _b._cursor;
+	m_capacity = b_.m_capacity;
+	m_size = b_.m_size;
+	m_cursor = b_.m_cursor;
 
-	std::copy(_b._data, _b._data + _capacity, _data);
+	std::copy(b_.m_data, b_.m_data + m_capacity, m_data);
 	return *this;
 }
 
-void Packet::popBack(size_t nbr)
+void Packet::popBack(const size_t nbr_)
 {
-	if (((long)_size - (long)nbr) < 0)throw "nbr insufisant de data dans le packet";
-	_size -= nbr;
-	if (_cursor > _size) _cursor = _size;
+	if (((long)m_size - (long)nbr_) < 0)throw "nbr insufisant de data dans le packet";
+	m_size -= nbr_;
+	if (m_cursor > m_size) m_cursor = m_size;
 }
 
 void Packet::clear()
 {
-	_size = 0;
-	_cursor = 0;
+	m_size = 0;
+	m_cursor = 0;
 }
 
-void Packet::read(char* data, size_t readSize)
+void Packet::read(char* const data_, const size_t readSize_) const
 {
-	if ((_cursor + readSize) > _size)throw "depassement lors de la lecture";
+	if ((m_cursor + readSize_) > m_size)throw "depassement lors de la lecture";
 
-	std::copy(_data + _cursor, _data + _cursor + readSize, data);
-	_cursor += readSize;
-
+	std::copy(m_data + m_cursor, m_data + m_cursor + readSize_, data_);
+	m_cursor += readSize_;
 }
 
 #pragma endregion

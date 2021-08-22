@@ -210,10 +210,19 @@ bool CryptoSocket::getHandShake()
 	return true;
 }
 
-void CryptoSocket::send(Packet pq_, std::optional<sf::Socket::Status> stat_)
+void CryptoSocket::send( Packet pq_, std::optional<sf::Socket::Status> stat_)
 {
 	//reception
-	AES::cryptage(pq_, m_cle);
+	try 
+	{
+		AES::cryptage(pq_, m_cle);
+	}
+	catch (...)
+	{
+		std::cerr << "Erreur lors du cryptage d'un paquet" << std::endl;
+		throw std::current_exception();
+	}
+
 	packetSender::send(pq_, *m_socket_ptr, stat_);
 }
 
@@ -223,21 +232,24 @@ Packet CryptoSocket::receive( std::optional<sf::Socket::Status> stat_)
 	if (stat_)
 	{
 		pq = packetSender::receive(*m_socket_ptr, stat_);
-		if (*stat_ != sf::Socket::Status::Done)
-		{
-			return pq;
-		}
+		RETURN_IF( stat_.value() != sf::Socket::Status::Done, pq);
 	}
 	else
 	{
 		sf::Socket::Status stat;
 		pq = packetSender::receive( *m_socket_ptr, stat );
-		if (stat != sf::Socket::Status::Done)
-		{
-			return pq;
-		}
+		RETURN_IF( stat != sf::Socket::Status::Done, pq);
 	}
 
-	AES::decryptage(pq, m_cle);
+	try
+	{
+		AES::decryptage(pq, m_cle);
+	}
+	catch (...)
+	{
+		std::cerr << "Erreur lors du decryptage d'un paquet" << std::endl;
+		throw std::current_exception();
+	}
+
 	return pq;
 }

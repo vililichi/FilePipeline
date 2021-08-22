@@ -1,6 +1,6 @@
 #include "packetSendReceive.h"
 
-void packetSender::send(Packet& pq_, sf::TcpSocket& socket_, std::optional<sf::Socket::Status> stat_ )
+void packetSender::send( const Packet& pq_, sf::TcpSocket& socket_, std::optional<sf::Socket::Status> stat_ )
 {
 	char* data = new char[pq_.size() + 2];
 	short size = pq_.size();
