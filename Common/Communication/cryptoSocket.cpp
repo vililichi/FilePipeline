@@ -168,7 +168,7 @@ bool CryptoSocket::getHandShake()
 	RETURN_IF(status != sf::TcpSocket::Status::Done, false)
 
 	//test d'authenticité
-	inft valTest = randinft(unsigned int(2147483648), unsigned int(4294967295));
+	inft valTest = randinft(uint32_t(2147483648), uint32_t(4294967295));
 	inft cpy = valTest;
 	RSA::cryptage(cpy, cle_RSA_public);
 	pq.clear();
@@ -199,7 +199,7 @@ bool CryptoSocket::getHandShake()
 	AES::generation(m_cle);
 
 	//envoie de la clé symétrique
-	inft cle_inft((unsigned char*)m_cle, 32);
+	inft cle_inft((uint8_t*)m_cle, 32);
 	RSA::cryptage(cle_inft, cle_RSA_public);
 	pq << cle_inft;
 	packetSender::send(pq, *m_socket_ptr, status);

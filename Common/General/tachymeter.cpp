@@ -1,5 +1,5 @@
 #pragma once
-#include "tachymeter.h"
+#include "Tachymeter.h"
 
 /*
 struct tachymeterSample

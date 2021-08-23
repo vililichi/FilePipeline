@@ -44,15 +44,16 @@ namespace AES
 	160, 224, 59, 77, 174, 42, 245, 176, 200, 235, 187, 60, 131, 83, 153, 97,
 	23, 43, 4, 126, 186, 119, 214, 38, 225, 105, 20, 99, 85, 33, 12, 125
 	};
+
 	//génération d'un clé de 32 octets
-	void generation(char*);
+	void generation(char* const cle_);
 
 	//expension d'une clé de 32 octets à une clé de 240 octets
-	void expensionCle(char* cle);
+	void expensionCle(char* const cle_);
 
 	//cryptage d'un paquet de 16 octets à l'aide d'une clé de 240 octets
-	void cryptage(char* b16, char* cle);
+	void cryptage(char* const b16_, char* const cle_);
 
 	//décryptage d'un paquet de 16 octets à l'aide d'une clé de 240 octets
-	void decryptage(char* b16, char* cle);
+	void decryptage(char* const b16_, char* const cle_);
 }

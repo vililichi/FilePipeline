@@ -1,20 +1,21 @@
 #include "RSA.h"
-#include "Communication/packet.h"
+#include "Communication/Packet.h"
 #include <thread>
 #include <fstream>
 
 #define nbrI  32
 
-void generateRandomPrimeIn(inft* container, inft min, inft max)
+// Fonction pour les threads de RSA::generation
+static void generateRandomPrimeInft(inft& container_, inft min_, inft max_)
 {
-    *container = randPrime(min, max);
+    container_ = randPrime(min_, max_);
 }
 
-void RSA::generation(cle& clePrive, cle& clePublic)
+void RSA::generation(cle& clePrive_, cle& clePublic_)
 {
 
 
-    unsigned long c[nbrI];
+    uint32_t c[nbrI];
     for (int i = 0; i < nbrI; i++) {
         c[i] = 4294967295;
     }
@@ -22,8 +23,8 @@ void RSA::generation(cle& clePrive, cle& clePublic)
     inft a(c, nbrI);
     inft p;
     inft q;
-    std::thread genp(&generateRandomPrimeIn, &p, a.half(), a);
-    std::thread genq(&generateRandomPrimeIn, &q, a.half(), a);
+    std::thread genp(&generateRandomPrimeInft, p, a.half(), a);
+    std::thread genq(&generateRandomPrimeInft, q, a.half(), a);
     genp.join();
     genq.join();
 
@@ -56,91 +57,91 @@ void RSA::generation(cle& clePrive, cle& clePublic)
         std::cout << "inversion non valide 2\n";
     }
 
-    clePublic.modulus = n;
-    clePrive.modulus = n;
-    clePublic.exposant = e;
-    clePrive.exposant = d;
+    clePublic_.modulus = n;
+    clePrive_.modulus = n;
+    clePublic_.exposant = e;
+    clePrive_.exposant = d;
 
 }
 
 //cryptage d'un paquet de 16 octets à l'aide d'une clé de 256 octets,le message et la taille de celui-ci varie
-void RSA::cryptage(inft& message, cle& clePublic)
+void RSA::cryptage(inft& message_, cle& clePublic_)
 {
-    message = message.modPow(clePublic.exposant, clePublic.modulus);
+    message_ = message_.modPow(clePublic_.exposant, clePublic_.modulus);
 }
 
 //décryptage d'un paquet de 16 octets à l'aide d'une clé de 256 octets,le message et la taille de celui-ci varie
-void RSA::decryptage(inft& message, cle& clePrive)
+void RSA::decryptage(inft& message_, cle& clePrive_)
 {
-    message = message.modPow(clePrive.exposant, clePrive.modulus);
+    message_ = message_.modPow(clePrive_.exposant, clePrive_.modulus);
 }
 
 //stockage dans packets
-Packet& operator << (Packet& packet, inft& val)
+Packet& operator << (Packet& packet_, inft& val_)
 {
-    packet << val.size()*4;
-    packet.add( (char*) val(), val.size()*4);
-    packet << val.isNegatif();
-    return packet;
+    packet_ << val_.size()*4;
+    packet_.add( (char*) val_(), val_.size()*4);
+    packet_ << val_.isNegatif();
+    return packet_;
 }
-Packet& operator << (Packet& packet, RSA::cle& val)
+Packet& operator << (Packet& packet_, RSA::cle& val_)
 {
-    packet << val.exposant;
-    packet << val.modulus;
-    return packet;
+    packet_ << val_.exposant;
+    packet_ << val_.modulus;
+    return packet_;
 }
 
-Packet& operator >> (Packet& packet, inft& val)
+Packet& operator >> (Packet& packet_, inft& val_)
 {
     size_t taille;
     bool negative;
-    packet >> taille;
+    packet_ >> taille;
     char* cptr = new char[taille];
-    packet.read(cptr, taille);
-    packet >> negative;
+    packet_.read(cptr, taille);
+    packet_ >> negative;
 
-    val = inft((unsigned char*)cptr, taille, negative);
+    val_ = inft((uint8_t*)cptr, taille, negative);
     delete[] cptr;
-    return packet;
+    return packet_;
 }
-Packet& operator >> (Packet& packet, RSA::cle& val)
+Packet& operator >> (Packet& packet_, RSA::cle& val_)
 {
-    packet >> val.exposant;
-    packet >> val.modulus;
-    return packet;
+    packet_ >> val_.exposant;
+    packet_ >> val_.modulus;
+    return packet_;
 }
 
 //mise en place sur le disque
-void RSA::storeKey(cle& cleQuelque, std::string path)
+void RSA::storeKey(const cle& cleQuelque_, const std::string& path_)
 {
     Packet pq;
-    pq << cleQuelque;
+    pq << cleQuelque_;
 
     std::ofstream file;
-    file.open(path, std::ostream::out | std::ostream::binary);
+    file.open(path_, std::ostream::out | std::ostream::binary);
     file << pq.size();
     file.write(pq.data(), pq.size());
     file.close();
     
 }
-void RSA::storeKeySet(cle& clePrive, cle& clePublic, std::string path)
+void RSA::storeKeySet(const cle& clePrive_, const cle& clePublic_, const std::string& path_)
 {
     Packet pq;
-    pq << clePrive;
-    pq << clePublic;
+    pq << clePrive_;
+    pq << clePublic_;
 
     std::ofstream file;
-    file.open(path, std::ostream::out | std::ostream::binary);
+    file.open(path_, std::ostream::out | std::ostream::binary);
     file << pq.size();
     file.write(pq.data(), pq.size());
     file.close();
 }
-bool RSA::getKey(cle& cleQuelque, std::string path)
+bool RSA::getKey(cle& cleQuelque_, const std::string& path_)
 {
     size_t size;
     std::ifstream file;
 
-    file.open(path, std::ostream::in | std::ostream::binary);
+    file.open(path_, std::ostream::in | std::ostream::binary);
     if (!file.is_open())return false;
 
     file >> size;
@@ -151,16 +152,16 @@ bool RSA::getKey(cle& cleQuelque, std::string path)
     Packet pq(size);
     pq.add(cptr, size);
     pq.move(0);
-    pq >> cleQuelque;
+    pq >> cleQuelque_;
 
     return true;
 }
-bool RSA::getKeySet(cle& clePrive, cle& clePublic, std::string path)
+bool RSA::getKeySet(cle& clePrive_, cle& clePublic_, const std::string& path_)
 {
     size_t size;
     std::ifstream file;
 
-    file.open(path, std::ostream::in | std::ostream::binary);
+    file.open(path_, std::ostream::in | std::ostream::binary);
     if (!file.is_open())return false;
 
     file >> size;
@@ -171,8 +172,8 @@ bool RSA::getKeySet(cle& clePrive, cle& clePublic, std::string path)
     Packet pq(size);
     pq.add(cptr, size);
     pq.move(0);
-    pq >> clePrive;
-    pq >> clePublic;
+    pq >> clePrive_;
+    pq >> clePublic_;
 
     return true;
 }

@@ -2,7 +2,7 @@
 namespace command
 {
 
-	enum Comm : char
+	enum Comm : uint8_t
 	{
 		list = 0,
 		download = 1,

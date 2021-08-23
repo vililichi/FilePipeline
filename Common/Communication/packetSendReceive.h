@@ -1,7 +1,7 @@
 #pragma once
 #include <SFML/Network.hpp>
 #include <optional>
-#include "packet.h"
+#include "Packet.h"
 
 namespace packetSender
 {

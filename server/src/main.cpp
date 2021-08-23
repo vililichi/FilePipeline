@@ -1,9 +1,9 @@
 ﻿#include <iostream>
 #include <thread>
-#include "Communication/command.h"
-#include "General/list.h"
-#include "General/general.h"
-#include "General/load.h"
+#include "Communication/Command.h"
+#include "General/List.h"
+#include "General/General.h"
+#include "General/Load.h"
 
 #pragma region thread
 void traitementPacket(CryptoSocket* csocket_ptr, Packet& pq)
@@ -242,7 +242,7 @@ int main()
 				std::string ip = p_commande[1];
 				if (p_commande.size() >= 3)
 				{
-					unsigned short port = std::stoi(p_commande[2]);
+					uint16_t port = std::stoi(p_commande[2]);
 					for (size_t i = 0; i < socketptr_List.size(); i++)
 					{
 						CryptoSocket* socketptr = *socketptr_List[i];

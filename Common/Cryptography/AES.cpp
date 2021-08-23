@@ -12,18 +12,18 @@ using namespace AES;
 
 #pragma region GF8
 
-inline const unsigned char GF8Mult(const unsigned char a, const unsigned char b)
+inline const unsigned char GF8Mult(const unsigned char a_, const unsigned char b_)
 {
 	#if defined(AESMemoryMult)
-	return TABLEMULT[a][b];
+	return TABLEMULT[a_][b_];
 	#else
 	unsigned char retour = 0;
-	while (a && b)
+	while (a_ && b_)
 	{
-		if (b & 1) retour ^= a;
-		if (a & 0x80) a = (a << 1) ^ 0x11b;
-		else a <<= 1;
-		b >>= 1;
+		if (b_ & 1) retour ^= a_;
+		if (a_ & 0x80) a_ = (a_ << 1) ^ 0x11b;
+		else a_ <<= 1;
+		b_ >>= 1;
 	}
 	return retour;
 	#endif
@@ -33,50 +33,50 @@ inline const unsigned char GF8Mult(const unsigned char a, const unsigned char b)
 
 #pragma region clé
 //génération d'une clé
-void AES::generation(char* cle)
+void AES::generation(char* const cle_)
 {
 	std::random_device rand;
 
-	for (int i = 0; i < nk * 4; i++)cle[i] = rand();
+	for (int i = 0; i < nk * 4; i++)cle_[i] = rand();
 }
 
 //substitue 4bytes avec la S_BOXE
-inline void subWord(char* b4)
+inline void subWord(char* const b4_)
 {
-	for (char i = 0; i < 4; i++) b4[i] = S_BOX[(unsigned char)b4[i]];
+	for (char i = 0; i < 4; i++) b4_[i] = S_BOX[(unsigned char)b4_[i]];
 }
 
 //effecue une rotation avec 4 bytes
-inline void RotWord(char* b4)
+inline void RotWord(char* const b4_)
 {
-	char b40 = b4[0];
-	b4[0] = b4[1];
-	b4[1] = b4[2];
-	b4[2] = b4[3];
-	b4[3] = b40;
+	char b40 = b4_[0];
+	b4_[0] = b4_[1];
+	b4_[1] = b4_[2];
+	b4_[2] = b4_[3];
+	b4_[3] = b40;
 }
 
 //génère un mot de 4 bytes dans buffer_b4
-void Rcon(const unsigned char i, char* buffer_b4)
+void Rcon(const unsigned char i, char* const buffer_b4_)
 {
 	unsigned char x(0x01);
 	for (unsigned char j = 1; j < i; j++) x = GF8Mult(x,0x02);
-	buffer_b4[0] = x;
-	buffer_b4[1] = 0;
-	buffer_b4[2] = 0;
-	buffer_b4[3] = 0;
+	buffer_b4_[0] = x;
+	buffer_b4_[1] = 0;
+	buffer_b4_[2] = 0;
+	buffer_b4_[3] = 0;
 }
 
 
 //augmente la taille de la clé, 
 //la taille prévue pour la clé doit être de 176, 208 ou 240 bytes
 //et la taille initiale de 16, 24 ou 32 bytes;
-void AES::expensionCle(char* cle)
+void AES::expensionCle(char* const cle_)
 {
 	char temp[4];
 	for (char i = nk; i < nb; i++)
 	{
-		for (char j = 0; j < 4; j++)temp[j] = cle[((i - 1) * 4) + j];
+		for (char j = 0; j < 4; j++)temp[j] = cle_[((i - 1) * 4) + j];
 		if (i % nk == 0)
 		{
 			char rconVal[4];
@@ -86,141 +86,141 @@ void AES::expensionCle(char* cle)
 			for (char j = 0; j < 4; j++)temp[j] = temp[j] ^ rconVal[j];
 		}
 		else if (i % nk == 4)subWord(temp);//pour 256 bits seulement
-		for (char j = 0; j < 4; j++)cle[(i * 4) + j] = cle[((i - nk) * 4) + j] ^ temp[j];
+		for (char j = 0; j < 4; j++)cle_[(i * 4) + j] = cle_[((i - nk) * 4) + j] ^ temp[j];
 	}
 }
 #pragma endregion
 
 #pragma region cryptage
 //substitue 16bytes avec la S_BOXE
-inline void subBytes(char* b16)
+inline void subBytes(char* const b16_)
 {
-	for (char i = 0; i < 16; i++) b16[i] = S_BOX[(unsigned char)b16[i]];
+	for (char i = 0; i < 16; i++) b16_[i] = S_BOX[(unsigned char)b16_[i]];
 }
 
 //effectue le decalage de range avec 16bytes
-inline void shiftRows(char* b16)
+inline void shiftRows(char* const b16_)
 {
-	char b1236[4] = { b16[1], b16[2], b16[3],b16[6] };
+	char b1236[4] = { b16_[1], b16_[2], b16_[3],b16_[6] };
 	//colonne 2
-	b16[1] = b16[5];
-	b16[5] = b16[9];
-	b16[9] = b16[13];
-	b16[13] = b1236[0];
+	b16_[1] = b16_[5];
+	b16_[5] = b16_[9];
+	b16_[9] = b16_[13];
+	b16_[13] = b1236[0];
 	//colonne 3
-	b16[2] = b16[10];
-	b16[6] = b16[14];
-	b16[10] = b1236[1];
-	b16[14] = b1236[3];
+	b16_[2] = b16_[10];
+	b16_[6] = b16_[14];
+	b16_[10] = b1236[1];
+	b16_[14] = b1236[3];
 	//colonne 4
-	b16[3] = b16[15];
-	b16[15] = b16[11];
-	b16[11] = b16[7];
-	b16[7] = b1236[2];
+	b16_[3] = b16_[15];
+	b16_[15] = b16_[11];
+	b16_[11] = b16_[7];
+	b16_[7] = b1236[2];
 }
 
 //effectue le brassage de colonne avec 16bytes
-inline void mixColumns(char* b16)
+inline void mixColumns(char* const b16_)
 {
 	char nb16[16];
 	for (unsigned char i = 0; i < 4; i++)
 	{
-		nb16[4 * i] = GF8Mult(0x02, b16[4 * i]) ^ GF8Mult(0x03, b16[(4 * i) + 1]) ^ b16[(4 * i) + 2] ^ b16[(4 * i) + 3];
-		nb16[(4 * i) + 1] = b16[4 * i] ^ GF8Mult(0x02, b16[(4 * i) + 1]) ^ GF8Mult(0x03, b16[(4 * i) + 2]) ^ b16[(4 * i) + 3];
-		nb16[(4 * i) + 2] = b16[4 * i] ^ b16[(4 * i) + 1] ^ GF8Mult(0x02, b16[(4 * i) + 2]) ^ GF8Mult(0x03, b16[(4 * i) + 3]);
-		nb16[(4 * i) + 3] = GF8Mult(0x03, b16[4 * i]) ^ b16[(4 * i) + 1] ^ b16[(4 * i) + 2] ^ GF8Mult(0x02, b16[(4 * i) + 3]);
+		nb16[4 * i]       = GF8Mult(0x02, b16_[4 * i]) ^ GF8Mult(0x03, b16_[(4 * i) + 1]) ^ b16_[(4 * i) + 2] ^ b16_[(4 * i) + 3];
+		nb16[(4 * i) + 1] = b16_[4 * i] ^ GF8Mult(0x02, b16_[(4 * i) + 1]) ^ GF8Mult(0x03, b16_[(4 * i) + 2]) ^ b16_[(4 * i) + 3];
+		nb16[(4 * i) + 2] = b16_[4 * i] ^ b16_[(4 * i) + 1] ^ GF8Mult(0x02, b16_[(4 * i) + 2]) ^ GF8Mult(0x03, b16_[(4 * i) + 3]);
+		nb16[(4 * i) + 3] = GF8Mult(0x03, b16_[4 * i]) ^ b16_[(4 * i) + 1] ^ b16_[(4 * i) + 2] ^ GF8Mult(0x02, b16_[(4 * i) + 3]);
 	}
 	//for (int i = 0; i < 16; i++)b16[i] = nb16[i];
-	std::copy(nb16, nb16 + 16, b16);
+	std::copy(nb16, nb16 + 16, b16_);
 }
 
 //ajout de la clé
-inline void addRoundKey(char* b16, char* key)
+inline void addRoundKey(char* const b16_, char* const key_)
 {
-	for (unsigned char i = 0; i < 16; i++)b16[i] = b16[i] ^ key[i];
+	for (unsigned char i = 0; i < 16; i++)b16_[i] = b16_[i] ^ key_[i];
 }
 
 //cryptage de 16 bytes avec une clé étendue
-void AES::cryptage(char* b16, char* cle)
+void AES::cryptage(char* const b16_, char* const cle_)
 {
-	addRoundKey(b16, cle);
+	addRoundKey(b16_, cle_);
 
 	for (char i = 1; i <= nr - 1; i++)
 	{
-		subBytes(b16);
-		shiftRows(b16);
-		mixColumns(b16);
-		addRoundKey(b16, cle + 16 * i);
+		subBytes(b16_);
+		shiftRows(b16_);
+		mixColumns(b16_);
+		addRoundKey(b16_, cle_ + 16 * i);
 	}
 
-	subBytes(b16);
-	shiftRows(b16);
-	addRoundKey(b16, cle + 16 * nr);
+	subBytes(b16_);
+	shiftRows(b16_);
+	addRoundKey(b16_, cle_ + 16 * nr);
 }
 #pragma endregion
 
 #pragma region decryptage
 //substitue 16bytes avec la INV_S_BOXE
-void invSubBytes(char* b16)
+void invSubBytes(char* const b16_)
 {
-	for (char i = 0; i < 16; i++) b16[i] = INV_S_BOX[(unsigned char)b16[i]];
+	for (char i = 0; i < 16; i++) b16_[i] = INV_S_BOX[(unsigned char)b16_[i]];
 }
 
 //effectue l'inverse du decalage de range avec 16bytes
-void invShiftRows(char* b16)
+void invShiftRows(char* const b16_)
 {
-	char b1236[4] = { b16[1], b16[2], b16[3],b16[6] };
+	char b1236[4] = { b16_[1], b16_[2], b16_[3],b16_[6] };
 	//colonne 2
-	b16[1] = b16[13];
-	b16[13] = b16[9];
-	b16[9] = b16[5];
-	b16[5] = b1236[0];
+	b16_[1]  = b16_[13];
+	b16_[13] = b16_[9];
+	b16_[9]  = b16_[5];
+	b16_[5]  = b1236[0];
 	//colonne 3
-	b16[2] = b16[10];
-	b16[6] = b16[14];
-	b16[10] = b1236[1];
-	b16[14] = b1236[3];
+	b16_[2]  = b16_[10];
+	b16_[6]  = b16_[14];
+	b16_[10] = b1236[1];
+	b16_[14] = b1236[3];
 	//colonne 4
-	b16[3] = b16[7];
-	b16[7] = b16[11];
-	b16[11] = b16[15];
-	b16[15] = b1236[2];
+	b16_[3]  = b16_[7];
+	b16_[7]  = b16_[11];
+	b16_[11] = b16_[15];
+	b16_[15] = b1236[2];
 
 }
 
 //effectue l'inverse du brassage de colonne avec 16bytes
-void invMixColumns(char* b16)
+void invMixColumns(char* const b16_)
 {
 	char nb16[16];
 	for (unsigned char i = 0; i < 4; i++)
 	{
-		const char nb1 = GF8Mult(0x0e, b16[4 * i]) ^ GF8Mult(0x0b, b16[(4 * i) + 1]) ^ GF8Mult(0x0d, b16[(4 * i) + 2]) ^ GF8Mult(0x09, b16[(4 * i) + 3]);
-		const char nb2 = GF8Mult(0x09, b16[4 * i]) ^ GF8Mult(0x0e, b16[(4 * i) + 1]) ^ GF8Mult(0x0b, b16[(4 * i) + 2]) ^ GF8Mult(0x0d, b16[(4 * i) + 3]);
-		const char nb3 = GF8Mult(0x0d, b16[4 * i]) ^ GF8Mult(0x09, b16[(4 * i) + 1]) ^ GF8Mult(0x0e, b16[(4 * i) + 2]) ^ GF8Mult(0x0b, b16[(4 * i) + 3]);
-		b16[(4 * i) + 3] = GF8Mult(0x0b, b16[4 * i]) ^ GF8Mult(0x0d, b16[(4 * i) + 1]) ^ GF8Mult(0x09, b16[(4 * i) + 2]) ^ GF8Mult(0x0e, b16[(4 * i) + 3]);
+		const char nb1 = GF8Mult(0x0e, b16_[4 * i]) ^ GF8Mult(0x0b, b16_[(4 * i) + 1]) ^ GF8Mult(0x0d, b16_[(4 * i) + 2]) ^ GF8Mult(0x09, b16_[(4 * i) + 3]);
+		const char nb2 = GF8Mult(0x09, b16_[4 * i]) ^ GF8Mult(0x0e, b16_[(4 * i) + 1]) ^ GF8Mult(0x0b, b16_[(4 * i) + 2]) ^ GF8Mult(0x0d, b16_[(4 * i) + 3]);
+		const char nb3 = GF8Mult(0x0d, b16_[4 * i]) ^ GF8Mult(0x09, b16_[(4 * i) + 1]) ^ GF8Mult(0x0e, b16_[(4 * i) + 2]) ^ GF8Mult(0x0b, b16_[(4 * i) + 3]);
+		b16_[(4 * i) + 3] = GF8Mult(0x0b, b16_[4 * i]) ^ GF8Mult(0x0d, b16_[(4 * i) + 1]) ^ GF8Mult(0x09, b16_[(4 * i) + 2]) ^ GF8Mult(0x0e, b16_[(4 * i) + 3]);
 
-		b16[4 * i] = nb1;
-		b16[(4 * i) + 1] = nb2;
-		b16[(4 * i) + 2] = nb3;
+		b16_[4 * i] = nb1;
+		b16_[(4 * i) + 1] = nb2;
+		b16_[(4 * i) + 2] = nb3;
 	}
 }
 
 //cryptage de 16 bytes avec une clé étendue
-void AES::decryptage(char* b16, char* cle)
+void AES::decryptage(char* const b16_, char* const cle_)
 {
-	addRoundKey(b16, cle + 16 * nr);
-	invShiftRows(b16);
-	invSubBytes(b16);
+	addRoundKey(b16_, cle_ + 16 * nr);
+	invShiftRows(b16_);
+	invSubBytes(b16_);
 
 	for (char i = nr - 1; i > 0; i--)
 	{
-		addRoundKey(b16, cle + 16 * i);
-		invMixColumns(b16);
-		invShiftRows(b16);
-		invSubBytes(b16);
+		addRoundKey(b16_, cle_ + 16 * i);
+		invMixColumns(b16_);
+		invShiftRows(b16_);
+		invSubBytes(b16_);
 	}
 
-	addRoundKey(b16, cle);
+	addRoundKey(b16_, cle_);
 }
 
 

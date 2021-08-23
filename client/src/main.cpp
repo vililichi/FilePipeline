@@ -5,10 +5,10 @@
 #include <iostream>
 #include <fstream>
 #include <thread>
-#include "Communication/command.h"
-#include "General/general.h"
-#include "General/list.h"
-#include "General/load.h"
+#include "Communication/Command.h"
+#include "General/General.h"
+#include "General/List.h"
+#include "General/Load.h"
 
 int main()
 {
@@ -37,7 +37,7 @@ int main()
 
 	//test de la cle
 	{
-		inft valTest = randinft(unsigned int(2147483648), unsigned int(4294967295));
+		inft valTest = randinft(uint32_t(2147483648), uint32_t(4294967295));
 		inft cpy = valTest;
 		RSA::cryptage(cpy, clePublic);
 		RSA::decryptage(cpy, clePrive);

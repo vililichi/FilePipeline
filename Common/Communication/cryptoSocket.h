@@ -1,8 +1,8 @@
 #pragma once
 
 #include <optional>
-#include "packetCryptation.h"
-#include "packetSendReceive.h"
+#include "PacketCryptation.h"
+#include "PacketSendReceive.h"
 #include "Cryptography/RSA.h"
 
 #define THRUST_PATH "thrust"

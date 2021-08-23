@@ -1,8 +1,8 @@
-#include "load.h"
-#include "Communication/command.h"
-#include "general.h"
-#include "tachymeter.h"
-#include "list.h"
+#include "Load.h"
+#include "Communication/Command.h"
+#include "General.h"
+#include "Tachymeter.h"
+#include "List.h"
 #include <fstream>
 
 void download(CryptoSocket* csocket_ptr, std::string filename, std::string folder, bool ui)
@@ -39,7 +39,7 @@ void download(CryptoSocket* csocket_ptr, std::string filename, std::string folde
 
 	Tachymeter tachy;
 	chronometer chronoTotal;
-	unsigned short trigger = 0;
+	uint16_t trigger = 0;
 	if (ui)
 	{
 		std::cout << 0 << "\t\t| " << tailleFichier;
@@ -125,7 +125,7 @@ void upload(CryptoSocket* csocket_ptr, std::string filename,std::string folder, 
 	//téléversement
 	Tachymeter tachy;
 	chronometer chronoTotal;
-	unsigned short trigger = 0;
+	uint16_t trigger = 0;
 	uint32_t tailleActu = 0;
 	if (ui)
 	{

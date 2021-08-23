@@ -1,21 +1,21 @@
-#include "general.h"
+#include "General.h"
 #include <filesystem>
 
 std::vector <std::string> split(std::string chaine, const char separateur, bool separateurMultiple)
 {
-	unsigned short i = 0;
+	size_t i = 0;
 	std::vector <std::string> out;
 	
 	while (chaine[i] != '\0') {
-		unsigned short j = i;
+		size_t j = i;
 		while (chaine[j] != separateur && chaine[j] != '\0') {
 			j++;
 		}
 		if (!separateurMultiple || j != i)
 		{
-			const unsigned short taille = (j - i)+1;
+			const size_t taille = (j - i)+1;
 			char* mot = new char[taille];
-			for (unsigned short k = 0; (k + i) < j; k++)
+			for (size_t k = 0; (k + i) < j; k++)
 			{
 				mot[k] = chaine[i + k];
 			}

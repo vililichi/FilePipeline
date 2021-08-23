@@ -1,5 +1,5 @@
 #include "Cryptography/AES.h"
-#include "packet.h"
+#include "Packet.h"
 
 namespace AES
 {

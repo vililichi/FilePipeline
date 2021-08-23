@@ -1,7 +1,7 @@
-#include "list.h"
-#include "Communication/command.h"
+#include "List.h"
+#include "Communication/Command.h"
 #include <filesystem>
-#include "general.h"
+#include "General.h"
 
 std::vector<fileInfo> getlist(CryptoSocket* csocket_ptr)
 {
