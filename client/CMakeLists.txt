@@ -14,11 +14,11 @@ set (COMMON_DIR"${CMAKE_SOURCE_DIR}/Common")
 include_directories ("${SRC_DIR}")
 include_directories ("${COMMON_DIR}")
 
-file (GLOB G_SRC "${SRC_DIR}/*.cpp")
-file (GLOB G_HDR "${SRC_DIR}/*.h")
+file (GLOB_RECURSE G_SRC "${SRC_DIR}/*.cpp")
+file (GLOB_RECURSE G_HDR "${SRC_DIR}/*.h")
 
-file (GLOB G_COMMON_SRC "${COMMON_DIR}/*/*.cpp")
-file (GLOB G_COMMON_HDR "${COMMON_DIR}/*/*.h")
+file (GLOB_RECURSE G_COMMON_SRC "${COMMON_DIR}/*/*.cpp")
+file (GLOB_RECURSE G_COMMON_HDR "${COMMON_DIR}/*/*.h")
 
 # add_executable
 add_executable ("${PROJECT_NAME}" "${G_COMMON_SRC}" "${G_COMMON_HDR}" "${G_SRC}" "${G_HDR}")
