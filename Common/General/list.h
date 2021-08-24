@@ -1,15 +1,16 @@
 #pragma once
+#include "Communication/cryptoSocket.h"
+
 #include <string>
 #include <vector>
-#include "Communication/CryptoSocket.h"
 
-#define DOWN_PATH "operation"
-#define UP_PATH "operation"
+constexpr char DOWN_PATH[] = "operation";
+constexpr char UP_PATH[] = "operation";
 
 struct fileInfo
 {
-	std::string name = "";
-	uint32_t size = 0;
+    std::string name = "";
+    uint32_t size = 0;
 };
 
 std::vector<fileInfo> list(std::string path = UP_PATH);

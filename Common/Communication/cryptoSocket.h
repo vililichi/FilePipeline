@@ -1,46 +1,50 @@
 #pragma once
 
-#include <optional>
+#include "Cryptography/RSA.h"
 #include "PacketCryptation.h"
 #include "PacketSendReceive.h"
-#include "Cryptography/RSA.h"
 
-#define THRUST_PATH "thrust"
+#include <optional>
+
+#define THRUST_PATH  "thrust"
 #define UNTRUST_PATH "unthrust"
 
 class CryptoSocket
 {
 public:
-	sf::TcpSocket* m_socket_ptr;
+    sf::TcpSocket* m_socket_ptr;
 
-	/*
-	  [client] Envoie une demande de poignée de main
-	  retourne true si l'accès est validé, false sinon
-	*/
-	bool sendHandShake( RSA::cle cle_RSA_public_, RSA::cle cle_RSA_privee_ );
+    /*
+      [client] Envoie une demande de poignÃ©e de main
+      retourne true si l'accÃ¨s est validÃ©, false sinon
+    */
+    bool sendHandShake(RSA::cle cle_RSA_public_, RSA::cle cle_RSA_privee_);
 
-	/*
-	  [serveur] Receptionne une demande de poignée de main et valide l'utilisateur
-	  retourne true si l'utilisateur à un accès valide, false sinon
-	*/
-	bool getHandShake();
+    /*
+      [serveur] Receptionne une demande de poignÃ©e de main et valide l'utilisateur
+      retourne true si l'utilisateur Ã  un accÃ¨s valide, false sinon
+    */
+    bool getHandShake();
 
-	/*
-	  Envoie un paquet
-	  [in] pq     : Paquet à envoyer
-	  [out] stat_ : Status de l'opération
-	*/
-	void send( Packet pq_, std::optional<sf::Socket::Status>& stat_ = std::nullopt );
+    /*
+      Envoie un paquet
+      [in] pq     : Paquet Ã  envoyer
+      [out] stat_ : Status de l'opÃ©ration
+    */
+    void send(Packet pq_, sf::Socket::Status& stat_);
+    void send(Packet pq_);
 
-	/*
-	  Attend qu'un paquet soit soit réceptionné et retourne ce packet
-	  [out] stat_ : Status de l'opération
-	*/
-	Packet receive(std::optional <sf::Socket::Status>& stat_ = std::nullopt);
+    /*
+      Attend qu'un paquet soit soit rÃ©ceptionnÃ© et retourne ce packet
+      [out] stat_ : Status de l'opÃ©ration
+    */
+    Packet receive(sf::Socket::Status& stat_);
+    Packet receive();
 
-	// Retourne le nom du point d'acces du CryptoSocket
-	std::string getAcces() { return m_acces; }
+    // Retourne le nom du point d'acces du CryptoSocket
+    std::string getAcces() { return m_acces; }
+
 protected:
-	char m_cle[240];
-	std::string m_acces;
+    char m_cle[240];
+    std::string m_acces;
 };
