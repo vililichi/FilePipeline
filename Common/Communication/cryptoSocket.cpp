@@ -210,7 +210,7 @@ bool CryptoSocket::getHandShake()
 	return true;
 }
 
-void CryptoSocket::send( Packet pq_, std::optional<sf::Socket::Status> stat_)
+void CryptoSocket::send( Packet pq_, std::optional<sf::Socket::Status>& stat_)
 {
 	//reception
 	try 
@@ -226,7 +226,7 @@ void CryptoSocket::send( Packet pq_, std::optional<sf::Socket::Status> stat_)
 	packetSender::send(pq_, *m_socket_ptr, stat_);
 }
 
-Packet CryptoSocket::receive( std::optional<sf::Socket::Status> stat_)
+Packet CryptoSocket::receive( std::optional<sf::Socket::Status>& stat_)
 {
 	Packet pq;
 	if (stat_)

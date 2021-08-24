@@ -30,13 +30,13 @@ public:
 	  [in] pq     : Paquet à envoyer
 	  [out] stat_ : Status de l'opération
 	*/
-	void send( Packet pq_, std::optional<sf::Socket::Status> stat_ = std::nullopt );
+	void send( Packet pq_, std::optional<sf::Socket::Status>& stat_ = std::nullopt );
 
 	/*
 	  Attend qu'un paquet soit soit réceptionné et retourne ce packet
 	  [out] stat_ : Status de l'opération
 	*/
-	Packet receive(std::optional <sf::Socket::Status> stat_ = std::nullopt);
+	Packet receive(std::optional <sf::Socket::Status>& stat_ = std::nullopt);
 
 	// Retourne le nom du point d'acces du CryptoSocket
 	std::string getAcces() { return m_acces; }

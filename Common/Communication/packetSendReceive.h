@@ -11,12 +11,12 @@ namespace packetSender
 	  [in]  socket_ : Socket où s'éffectue l'envoie
 	  [out] stat_   : Status de l'opération
 	*/
-	void send( const Packet& pq_, sf::TcpSocket& socket_, std::optional<sf::Socket::Status> stat_ = std::nullopt );
+	void send( const Packet& pq_, sf::TcpSocket& socket_, std::optional<sf::Socket::Status>& stat_ = std::nullopt );
 
 	/*
 	  Receptionne un paquet d'un socket
 	  [in]  socket_ : Socket où s'éffectue la reception
 	  [out] stat_   : Status de l'opération
 	*/
-	Packet receive(sf::TcpSocket& socket_, std::optional<sf::Socket::Status> stat_ = std::nullopt );
+	Packet receive(sf::TcpSocket& socket_, std::optional<sf::Socket::Status>& stat_ = std::nullopt );
 }
