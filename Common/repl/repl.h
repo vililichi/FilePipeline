@@ -30,14 +30,19 @@ namespace repl
         void addDefaultCommand(ReplCallback cb);
         void addDefaultCommand(const std::string& name = "help");
 
+        void setUnknownCommandString(const std::string& msg);
+
     private:
         std::map<std::string, ReplCallback> callbacks;
         std::vector<std::string> helpMessages;
         std::string prompt;
         std::string defaultCommandKey;
+        std::string unknownCommandString;
 
-        ReplCallback helpCb;
+        const ReplCallback helpCb;
+        const ReplCallback unknownCb;
 
+        static constexpr char DEFAULT_UNKNOWN_COMMAND_STRING[] = "Unknown command";
         static constexpr char DEFAULT_DEFAULT_COMMAND_KEY[] = "__default__";
 
         void addCmd(const std::string& name, const std::vector<std::string>& alias,
@@ -50,8 +55,8 @@ namespace repl
                                             const std::string& helpUsage);
 
         bool helpCallback(const ParamVec& command);
+        bool defaultUnknownCallback(const ParamVec& command);
 
-        static bool defaultDefaultCallback(const ParamVec& command);
         static bool exitCallback(const ParamVec& command);
     };
 }

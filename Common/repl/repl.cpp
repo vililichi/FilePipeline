@@ -13,7 +13,7 @@ std::string Repl::buildHelpMessage(const std::string& name, const AliasVec& alia
                                    const std::string& helpUsage)
 {
     std::ostringstream oss;
-    oss << name;
+    oss << "  :: " << name;
 
     if (!alias.empty())
     {
@@ -22,14 +22,16 @@ std::string Repl::buildHelpMessage(const std::string& name, const AliasVec& alia
         oss << "}";
     }
 
-    oss << " " << helpUsage << " : " << helpMessage << "\n";
+    oss << (helpUsage.empty() ? "" : " ") << helpUsage << " : " << helpMessage << "\n";
 
     return oss.str();
 }
 
-bool Repl::defaultDefaultCallback(const ParamVec& command)
+bool Repl::defaultUnknownCallback(const ParamVec& command)
 {
-    std::cout << "Unknown command [" << command[0] << "]" << std::endl;
+    std::cout << (unknownCommandString.empty() ? "Unknown command :"
+                                               : unknownCommandString)
+              << " [" << command[0] << "]" << std::endl;
     return true;
 }
 
@@ -42,7 +44,7 @@ bool Repl::helpCallback(const ParamVec& command)
 {
     for (const auto& msg : helpMessages)
     {
-        std::cout << msg << "\n";
+        std::cout << msg;
     }
 
     std::cout << std::flush;
@@ -52,9 +54,11 @@ bool Repl::helpCallback(const ParamVec& command)
 
 Repl::Repl(const std::string& prompt)
     : prompt(prompt), helpCb([this](const ParamVec& command) -> bool
-                             { return this->helpCallback(command); })
+                             { return this->helpCallback(command); }),
+      unknownCb([this](const ParamVec& command) -> bool
+                { return this->defaultUnknownCallback(command); })
 {
-    callbacks.at(DEFAULT_DEFAULT_COMMAND_KEY) = &Repl::defaultDefaultCallback;
+    callbacks[DEFAULT_DEFAULT_COMMAND_KEY] = unknownCb;
 }
 
 bool Repl::printPrompt()
@@ -71,15 +75,15 @@ bool Repl::parse(const ParamVec& command)
     }
     else if (col::contains(callbacks, command[0]))
     {
-        return callbacks.at(command[0])(command);
+        return callbacks[command[0]](command);
     }
     else if (!defaultCommandKey.empty() && col::contains(callbacks, defaultCommandKey))
     {
-        return callbacks.at(defaultCommandKey)(command);
+        return callbacks[defaultCommandKey](command);
     }
     else
     {
-        return callbacks.at(DEFAULT_DEFAULT_COMMAND_KEY)(command);
+        return callbacks[DEFAULT_DEFAULT_COMMAND_KEY](command);
     }
 }
 
@@ -89,10 +93,10 @@ void Repl::addCmd(const std::string& name, const std::vector<std::string>& alias
 {
     helpMessages.push_back(buildHelpMessage(name, alias, helpMessage, helpUsage));
 
-    callbacks.at(name) = cb;
+    callbacks[name] = cb;
     for (const auto& aname : alias)
     {
-        callbacks.at(aname) = cb;
+        callbacks[aname] = cb;
     }
 }
 
@@ -117,10 +121,15 @@ void Repl::addCommand(const std::string& name, ReplCallback cb,
 
 void Repl::addDefaultCommand(ReplCallback cb)
 {
-    callbacks.at(DEFAULT_DEFAULT_COMMAND_KEY) = cb;
+    callbacks[DEFAULT_DEFAULT_COMMAND_KEY] = cb;
 }
 
 void Repl::addDefaultCommand(const std::string& name)
 {
     defaultCommandKey = name;
+}
+
+void Repl::setUnknownCommandString(const std::string& msg)
+{
+    unknownCommandString = msg;
 }

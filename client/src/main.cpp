@@ -27,7 +27,7 @@ std::pair<RSA::cle, RSA::cle> generateKeys()
 {
     std::cout << "Creation de la cle en cours...\n";
     std::cout << "Cette operation peut prendre beaucoup de temps.\n";
-    std::cout << "Elle peut aussi ne jamais finir.\n";
+    std::cout << "Elle peut aussi ne jamais finir." << std::endl;
 
     std::pair<RSA::cle, RSA::cle> cles = RSA::generation();
 
@@ -155,7 +155,7 @@ std::unique_ptr<repl::Repl> createRepl(CryptoSocket* cSocket)
 
     clientRepl->addExitCommand();
     clientRepl->addHelpCommand();
-    // clientRepl->addDefaultCommand("help");
+    clientRepl->setUnknownCommandString("Commande inconnue :");
 
     clientRepl->addCommand("list",
                            [cSocket](const ParamVec& command) -> bool
