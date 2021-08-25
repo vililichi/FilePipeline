@@ -14,8 +14,7 @@ void packetSender::send(const Packet& pq_, sf::TcpSocket& socket_,
     delete[] data;
 }
 
-void packetSender::send(const Packet& pq_, sf::TcpSocket& socket_,
-                        sf::Socket::Status& stat_)
+void packetSender::send(const Packet& pq_, sf::TcpSocket& socket_)
 {
     sf::Socket::Status _;
     return packetSender::send(pq_, socket_, _);

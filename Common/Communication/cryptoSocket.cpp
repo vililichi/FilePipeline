@@ -238,7 +238,8 @@ void CryptoSocket::send(Packet pq_, sf::Socket::Status& stat_)
 
     packetSender::send(pq_, *m_socket_ptr, stat_);
 }
-void CryptoSocket::send(Packet pq_, sf::Socket::Status& stat_)
+
+void CryptoSocket::send(Packet pq_)
 {
     sf::Socket::Status _;
     return CryptoSocket::send(pq_, _);

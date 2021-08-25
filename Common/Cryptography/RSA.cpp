@@ -9,29 +9,26 @@ constexpr size_t nbrI = 32;
 constexpr uint32_t Fermat4 = 65537;
 
 // Fonction pour les threads de RSA::generation
-static void generateRandomPrimeInft(inft& container_, inft min_, inft max_)
+static void generateRandomPrimeInft(inft* container_, inft min_, inft max_)
 {
-    container_ = randPrime(min_, max_);
+    *container_ = randPrime(min_, max_);
 }
 
-// void RSA::generation(cle& clePrive_, cle& clePublic_)
 std::pair<RSA::cle, RSA::cle> RSA::generation()
 {
     uint32_t c[nbrI];
     for (int i = 0; i < nbrI; i++)
     {
-        // c[i] = 4294967295;
         c[i] = std::numeric_limits<uint32_t>::max();
     }
 
     inft a(c, nbrI);
     inft p;
     inft q;
-    std::thread genp(&generateRandomPrimeInft, p, a.half(), a);
-    std::thread genq(&generateRandomPrimeInft, q, a.half(), a);
+    std::thread genp(&generateRandomPrimeInft, &p, a.half(), a);
+    std::thread genq(&generateRandomPrimeInft, &q, a.half(), a);
     genp.join();
     genq.join();
-
 
     // n et phi
     inft n = p * q;
@@ -51,7 +48,6 @@ std::pair<RSA::cle, RSA::cle> RSA::generation()
                 break; // test de la taille de la clé
         }
     }
-
 
     if (!((e * d % phi) == inft(1)))
     {
@@ -89,14 +85,14 @@ void RSA::decryptage(inft& message_, const cle& clePrive_)
 }
 
 // stockage dans packets
-Packet& operator<<(Packet& packet_, inft& val_)
+Packet& operator<<(Packet& packet_, const inft& val_)
 {
     packet_ << val_.size() * 4;
     packet_.add((char*)val_(), val_.size() * 4);
     packet_ << val_.isNegatif();
     return packet_;
 }
-Packet& operator<<(Packet& packet_, RSA::cle& val_)
+Packet& operator<<(Packet& packet_, const RSA::cle& val_)
 {
     packet_ << val_.exposant;
     packet_ << val_.modulus;
