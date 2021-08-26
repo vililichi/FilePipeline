@@ -136,7 +136,7 @@ void download(CryptoSocket* csocket_ptr, const std::string& filename,
 	if (ui)
 	{
         HideCursor(true);
-        updateStateBar(0, tailleFichier, 0)
+        updateStateBar(0, tailleFichier, 0);
 		chronoTotal.start();
 		tachy.start();
 	}
