@@ -7,3 +7,5 @@ std::vector <std::string> split(std::string chaine, const char separateur, bool 
 
 void createFolder(std::string path);
 
+void IgnoreLine();
+

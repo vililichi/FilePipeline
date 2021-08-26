@@ -192,19 +192,32 @@ int main()
     // instanciation
     sf::TcpListener listener;
 
-    // demande du port
-    std::cout << "port: " << std::endl;
-    short port;
-    std::cin >> port;
+    unsigned short port;
+    while (true)
+    {
+        // Obtention du port
+        std::cout << "port: " << std::flush;
+        std::cin >> port;
+        if (std::cin.fail())
+        {
+            std::cout << "Valeur invalide\n";
+            std::cin.clear();
+            IgnoreLine();
+            continue;
+        }
+        break;
+    }
 
     // ouverture du listener
     listener.listen(port);
+    std::cout << listener.getLocalPort() << std::endl;
+
     std::vector<CryptoSocket**> socketptr_List;
     std::thread listeningThread(&listeningFunction, &listener, &socketptr_List);
 
     std::string commande = "h";
     std::vector<std::string> p_commande = split(commande, ' ');
-    std::cin.ignore();
+
     while (!(p_commande.size() > 0 && p_commande[0] == "exit")
            && !(p_commande.size() > 0 && p_commande[0] == "e"))
     {

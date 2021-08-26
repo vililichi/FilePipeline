@@ -1,5 +1,6 @@
 #include "General.h"
 #include <filesystem>
+#include <iostream>
 
 std::vector <std::string> split(std::string chaine, const char separateur, bool separateurMultiple)
 {
@@ -33,4 +34,9 @@ void createFolder(std::string path)
 {
 	if (!std::filesystem::exists(path))
 		std::filesystem::create_directory(path);
+}
+
+void IgnoreLine()
+{
+    std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
 }
