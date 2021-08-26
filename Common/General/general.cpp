@@ -4,6 +4,7 @@
 #include <iostream>
 #include <bit>
 
+
 std::vector <std::string> split(const std::string& chaine, const char separateur, bool separateurMultiple)
 {
     size_t i = 0;
@@ -82,11 +83,6 @@ void IgnoreLine()
     std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
 }
 
-void HideCursor(const bool hide_) 
-{
-    return;
-}
-
 void ManageEndian(uint8_t* const bytes_, const size_t nbrBytes_)
 {
     if (std::endian::native == std::endian::big)
@@ -98,4 +94,28 @@ void ManageEndian(uint8_t* const bytes_, const size_t nbrBytes_)
             bytes_[i] = copyTable[nbrBytes_ - 1 - i];
         }
     }
+}
+
+#ifdef _WIN32
+#include <windows.h>
+#endif // _WIN32
+
+void HideCursor(const bool hide_)
+{
+#ifdef _WIN32
+    HANDLE consoleHandle = GetStdHandle(STD_OUTPUT_HANDLE);
+    CONSOLE_CURSOR_INFO info;
+    GetConsoleCursorInfo(consoleHandle, &info);
+    if (hide_)
+    {
+        info.bVisible = FALSE;
+    }
+    else
+    {
+        info.bVisible = TRUE;
+    }
+    if (SetConsoleCursorInfo(consoleHandle, &info) == FALSE) throw;
+#endif // _WIN32
+
+    return;
 }
