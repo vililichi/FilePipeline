@@ -1,24 +1,23 @@
 #pragma once
-#include "Packet.h"
+#include "packet.h"
 
 #include <SFML/Network.hpp>
-#include <optional>
 
 namespace packetSender
 {
     /*
       Envoie un paquet dans le socket
-      [in]  pq_     : Paquet à envoyer
-      [in]  socket_ : Socket où s'effectue l'envoie
-      [out] stat_   : Status de l'op?ration
+      [in]  pq_     : Paquet Ã  envoyer
+      [in]  socket_ : Socket oÃ¹ s'effectue l'envoie
+      [out] stat_   : Status de l'opÃ©ration
     */
     void send(const Packet& pq_, sf::TcpSocket& socket_, sf::Socket::Status& stat_);
     void send(const Packet& pq_, sf::TcpSocket& socket_);
 
     /*
       Receptionne un paquet d'un socket
-      [in]  socket_ : Socket où s'effectue la reception
-      [out] stat_   : Status de l'opération
+      [in]  socket_ : Socket oÃ¹ s'effectue la reception
+      [out] stat_   : Status de l'opÃ©ration
     */
     Packet receive(sf::TcpSocket& socket_, sf::Socket::Status& stat_);
     Packet receive(sf::TcpSocket& socket_);

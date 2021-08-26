@@ -2,13 +2,11 @@
 //
 
 #include "Communication/command.h"
-#include "General/General.h"
-#include "General/List.h"
-#include "General/Load.h"
+#include "General/general.h"
+#include "General/list.h"
 #include "cmds/cmds.h"
 #include "repl/repl.h"
 
-#include <fstream>
 #include <iostream>
 #include <thread>
 

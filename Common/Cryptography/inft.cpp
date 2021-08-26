@@ -1,10 +1,10 @@
-#include "Inft.h"
+#include "inft.h"
 
-#include "PrimeList.h"
+#include "primeList.h"
 
 #include <algorithm>
+#include <cstdlib>
 #include <random>
-#include <stdlib.h>
 
 
 void inft::cut()
@@ -403,17 +403,6 @@ inft additiveComp(const inft& A_, const inft& B_, const bool invB_)
             const_cast<inft*>(&B_)->m_negatif = !const_cast<inft*>(&B_)->m_negatif;
         return out;
     }
-}
-
-inft inft::operator+(const inft& val_) const
-{
-    return additiveComp(*this, val_, false);
-}
-
-inft inft::operator-(const inft& val_) const
-{
-    const_cast<inft*>(&val_)->m_negatif = !const_cast<inft*>(&val_)->m_negatif;
-    return additiveComp(*this, val_, true);
 }
 
 void inft::operator--()

@@ -1,6 +1,10 @@
 #pragma once
 #include <iostream>
 
+// Requis pour publier l'argument par défaut
+class inft;
+inft additiveComp(const inft& A_, const inft& B_, const bool invB_ = false);
+
 class inft
 {
 protected:
@@ -62,8 +66,12 @@ public:
 
     // operateur arithmetique
     // addition
-    inline inft operator+(const inft&) const;
-    inline inft operator-(const inft&) const;
+    inft operator+(const inft& val_) const { return additiveComp(*this, val_, false); }
+    inft operator-(const inft& val_) const
+    {
+        const_cast<inft*>(&val_)->m_negatif = !const_cast<inft*>(&val_)->m_negatif;
+        return additiveComp(*this, val_, true);
+    }
     void operator--();
     // multiplication
     inft operator*(const inft&) const;
@@ -108,7 +116,7 @@ private:
         m_valeur = new uint32_t[m_nbrLong]();
     };
 
-    friend inft additiveComp(const inft& A_, const inft& B_, const bool invB_ = false);
+    friend inft additiveComp(const inft& A_, const inft& B_, const bool invB_);
 };
 
 std::ostream& operator<<(std::ostream& os_, const inft& val_);
