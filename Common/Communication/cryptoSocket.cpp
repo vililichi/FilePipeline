@@ -1,4 +1,4 @@
-#include "CryptoSocket.h";
+#include "cryptoSocket.h"
 
 #include "General/MacroBank.h"
 #include "General/list.h"
@@ -11,36 +11,36 @@
   [in]  cle_folder_     : Répertoire où chercher la clé
   [out] acces_          : Nom du point d'accès correspondant à la clé
 */
-static bool IsThrust(RSA::cle cle_RSA_public_, std::string cle_folder_,
+static bool IsThrust(const RSA::cle& cle_RSA_public_, const std::string& cle_folder_,
                      std::string& acces_)
 {
     // Recherche si la clé est de confiance
     std::filesystem::directory_iterator dirItt(cle_folder_);
-    std::vector<fileInfo> thrust = list(cle_folder_);
-    for (int i = 0; i < thrust.size(); i++)
+    std::vector<fileInfo> trust = list(cle_folder_);
+    for (const auto& cle : trust)
     {
         RSA::cle cle_test;
-        RSA::getKey(cle_test, cle_folder_ + "/" + thrust[i].name);
+        RSA::getKey(cle_test, cle_folder_ + "/" + cle.name);
         if (cle_test.exposant == cle_RSA_public_.exposant
             && cle_test.modulus == cle_RSA_public_.modulus)
         {
-            acces_ = thrust[i].name;
+            acces_ = cle.name;
             return true;
         }
     }
 
     // Recherche si la clé est enregistrée
-    std::vector<fileInfo> uthrust = list(UNTRUST_PATH);
-    for (int i = 0; i < uthrust.size(); i++)
+    std::vector<fileInfo> untrust = list(UNTRUST_PATH);
+    for (const auto& cle : untrust)
     {
         RSA::cle cle_test;
         std::string path = UNTRUST_PATH;
-        path += "/" + uthrust[i].name;
+        path += "/" + cle.name;
         RSA::getKey(cle_test, path);
         if (cle_test.exposant == cle_RSA_public_.exposant
             && cle_test.modulus == cle_RSA_public_.modulus)
         {
-            acces_ = uthrust[i].name;
+            acces_ = cle.name;
             return false;
         }
     }
@@ -50,9 +50,9 @@ static bool IsThrust(RSA::cle cle_RSA_public_, std::string cle_folder_,
     {
         std::string file = "k" + std::to_string(i);
         bool present = false;
-        for (int i = 0; i < thrust.size(); i++)
+        for (const auto& cle : trust)
         {
-            if (file == thrust[i].name)
+            if (file == cle.name)
             {
                 present = true;
                 break;
@@ -60,9 +60,9 @@ static bool IsThrust(RSA::cle cle_RSA_public_, std::string cle_folder_,
         }
         if (present)
             continue;
-        for (int i = 0; i < uthrust.size(); i++)
+        for (const auto& cle : untrust)
         {
-            if (file == uthrust[i].name)
+            if (file == cle.name)
             {
                 present = true;
                 break;
@@ -80,7 +80,8 @@ static bool IsThrust(RSA::cle cle_RSA_public_, std::string cle_folder_,
     return false;
 }
 
-bool CryptoSocket::sendHandShake(RSA::cle cle_RSA_public_, RSA::cle cle_RSA_privee_)
+bool CryptoSocket::sendHandShake(const RSA::cle& cle_RSA_public_,
+                                 const RSA::cle& cle_RSA_privee_)
 {
     sf::TcpSocket::Status status;
 
@@ -165,7 +166,7 @@ bool CryptoSocket::getHandShake()
     pq.clear();
 
     // test de présence
-    if (!IsThrust(cle_RSA_public, THRUST_PATH, m_acces))
+    if (!IsThrust(cle_RSA_public, TRUST_PATH, m_acces))
     {
         pq << false << m_acces;
         packetSender::send(pq, *m_socket_ptr);
@@ -207,7 +208,7 @@ bool CryptoSocket::getHandShake()
     AES::generation(m_cle);
 
     // envoie de la clé symétrique
-    inft cle_inft( m_cle, 32);
+    inft cle_inft(m_cle, 32);
     RSA::cryptage(cle_inft, cle_RSA_public);
     pq << cle_inft;
     packetSender::send(pq, *m_socket_ptr, status);
@@ -228,7 +229,7 @@ void CryptoSocket::send(Packet pq_, sf::Socket::Status& stat_)
     catch (...)
     {
         std::cerr << "Erreur lors du cryptage d'un paquet" << std::endl;
-        throw std::current_exception();
+        throw;
     }
 
     packetSender::send(pq_, *m_socket_ptr, stat_);
@@ -253,7 +254,7 @@ Packet CryptoSocket::receive(sf::Socket::Status& stat_)
     catch (...)
     {
         std::cerr << "Erreur lors du decryptage d'un paquet" << std::endl;
-        throw std::current_exception();
+        throw;
     }
 
     return pq;

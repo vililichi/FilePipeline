@@ -9,10 +9,10 @@ constexpr char UP_PATH[] = "operation";
 
 struct fileInfo
 {
-    std::string name = "";
+    std::string name;
     uint64_t size = 0;
 };
 
-std::vector<fileInfo> list(std::string path = UP_PATH);
+std::vector<fileInfo> list(const std::string& path = UP_PATH);
 
 std::vector<fileInfo> getlist(CryptoSocket* csocket_ptr);

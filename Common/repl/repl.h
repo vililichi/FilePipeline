@@ -9,7 +9,7 @@ namespace repl
     class Repl
     {
     public:
-        Repl(const std::string& prompt = "> ");
+        explicit Repl(const std::string& prompt = "> ");
 
         bool printPrompt();
         bool parse(const ParamVec& command);

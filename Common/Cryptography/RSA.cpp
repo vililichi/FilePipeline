@@ -4,6 +4,7 @@
 
 #include <fstream>
 #include <thread>
+#include <utility>
 
 constexpr size_t nbrI = 32;
 constexpr uint32_t Fermat4 = 65537;
@@ -11,7 +12,7 @@ constexpr uint32_t Fermat4 = 65537;
 // Fonction pour les threads de RSA::generation
 static void generateRandomPrimeInft(inft* container_, inft min_, inft max_)
 {
-    *container_ = randPrime(min_, max_);
+    *container_ = randPrime(std::move(min_), std::move(max_));
 }
 
 std::pair<RSA::cle, RSA::cle> RSA::generation()
@@ -108,7 +109,7 @@ Packet& operator>>(Packet& packet_, inft& val_)
     packet_.read(cptr, taille);
     packet_ >> negative;
 
-    val_ = inft( cptr, taille, negative );
+    val_ = inft(cptr, taille, negative);
     delete[] cptr;
     return packet_;
 }
@@ -128,7 +129,7 @@ void RSA::storeKey(const cle& cleQuelque_, const std::string& path_)
     std::ofstream file;
     file.open(path_, std::ostream::out | std::ostream::binary);
     file << pq.size();
-    file.write( reinterpret_cast<char*>( pq.data() ), pq.size());
+    file.write(reinterpret_cast<char*>(pq.data()), pq.size());
     file.close();
 }
 void RSA::storeKeySet(const cle& clePrive_, const cle& clePublic_,
@@ -141,7 +142,7 @@ void RSA::storeKeySet(const cle& clePrive_, const cle& clePublic_,
     std::ofstream file;
     file.open(path_, std::ostream::out | std::ostream::binary);
     file << pq.size();
-    file.write(reinterpret_cast<char*>(pq.data()) , pq.size());
+    file.write(reinterpret_cast<char*>(pq.data()), pq.size());
     file.close();
 }
 bool RSA::getKey(cle& cleQuelque_, const std::string& path_)
@@ -180,7 +181,7 @@ bool RSA::getKeySet(cle& clePrive_, cle& clePublic_, const std::string& path_)
     file.close();
 
     Packet pq(size);
-    pq.add( reinterpret_cast<uint8_t*>(cptr), size);
+    pq.add(reinterpret_cast<uint8_t*>(cptr), size);
     pq.move(0);
     pq >> clePrive_;
     pq >> clePublic_;

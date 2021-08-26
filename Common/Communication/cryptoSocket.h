@@ -1,13 +1,13 @@
 #pragma once
 
 #include "Cryptography/RSA.h"
-#include "PacketCryptation.h"
-#include "PacketSendReceive.h"
+#include "packetCryptation.h"
+#include "packetSendReceive.h"
 
 #include <optional>
 
-#define THRUST_PATH  "thrust"
-#define UNTRUST_PATH "unthrust"
+constexpr char TRUST_PATH[] = "trust";
+constexpr char UNTRUST_PATH[] = "untrust";
 
 class CryptoSocket
 {
@@ -18,7 +18,7 @@ public:
       [client] Envoie une demande de poignée de main
       retourne true si l'accès est validé, false sinon
     */
-    bool sendHandShake(RSA::cle cle_RSA_public_, RSA::cle cle_RSA_privee_);
+    bool sendHandShake(const RSA::cle& cle_RSA_public_, const RSA::cle& cle_RSA_privee_);
 
     /*
       [serveur] Receptionne une demande de poignée de main et valide l'utilisateur

@@ -19,8 +19,8 @@ public:
       Crée un paquet
       [in] beginCapacity_ : capacitée de dépard du Packet
     */
-    Packet(const size_t beginCapacity_ =
-               INIT_PACKET_SIZE); // constructeur avec capacité de départ
+    explicit Packet(const size_t beginCapacity_ =
+                        INIT_PACKET_SIZE); // constructeur avec capacité de départ
     // Contructeur de copie d'un paquet
     Packet(const Packet& base_);
     Packet& operator=(const Packet& b_);
@@ -92,7 +92,7 @@ template <typename T>
 inline Packet& Packet::operator<<(const std::basic_string<T>& data_)
 {
     constexpr size_t sizeFactor = sizeof(T) / sizeof(uint8_t);
-    const size_t bytesNbr = (data_.size() + 1)*sizeFactor;
+    const size_t bytesNbr = (data_.size() + 1) * sizeFactor;
 
     const uint8_t* cdata = reinterpret_cast<const uint8_t*>(data_.c_str());
 
@@ -107,7 +107,7 @@ inline Packet& Packet::operator<<(const std::basic_string<T>& data_)
 template <typename T>
 inline const Packet& Packet::operator>>(T& data_) const
 {
-    constexpr size_t bytesNbr = sizeof(T)/sizeof(uint8_t);
+    constexpr size_t bytesNbr = sizeof(T) / sizeof(uint8_t);
     if ((m_cursor + bytesNbr) > m_size)
         throw "depassement lors de la lecture";
 
@@ -132,7 +132,7 @@ inline const Packet& Packet::operator>>(std::basic_string<T>& data_) const
             throw "depassement lors de la lecture";
     }
 
-    data_ = std::string( charData );
+    data_ = std::string(charData);
     m_cursor += bytesNbr * sizeFactor + 1;
     return *this;
 }

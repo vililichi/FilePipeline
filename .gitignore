@@ -6,3 +6,5 @@
 build
 lib/SFML*
 .cache
+out
+.idea

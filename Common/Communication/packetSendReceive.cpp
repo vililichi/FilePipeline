@@ -1,4 +1,4 @@
-#include "PacketSendReceive.h"
+#include "packetSendReceive.h"
 
 void packetSender::send(const Packet& pq_, sf::TcpSocket& socket_,
                         sf::Socket::Status& stat_)
@@ -8,7 +8,8 @@ void packetSender::send(const Packet& pq_, sf::TcpSocket& socket_,
 
     if (size != pq_.size())
     {
-        throw; // convertion invalide, il faudrait augmenter la taille de l'espace aloué à la taille d'un paquet
+        throw; // convertion invalide, il faudrait augmenter la taille de l'espace alouÃ©e
+               // Ã  la taille d'un paquet
     }
 
     uint8_t* csize = (uint8_t*)&size;
