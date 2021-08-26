@@ -249,7 +249,7 @@ int main()
     auto replPtr = createRepl(cSocket.get());
 
     std::string commande = "h";
-    std::vector<std::string> p_commande = split(commande, ' ');
+    std::vector<std::string> p_commande = splitCommand(commande);
 
     bool shouldContinue = true;
 
@@ -262,7 +262,7 @@ int main()
             std::cout << std::endl;
             replPtr->printPrompt();
             std::getline(std::cin, commande);
-            p_commande = split(commande, ' ', true);
+            p_commande = splitCommand(commande);
             std::cout << std::endl;
         }
     }

@@ -216,7 +216,7 @@ int main()
     std::thread listeningThread(&listeningFunction, &listener, &socketptr_List);
 
     std::string commande = "h";
-    std::vector<std::string> p_commande = split(commande, ' ');
+    std::vector<std::string> p_commande = splitCommand(commande);
 
     while (!(p_commande.size() > 0 && p_commande[0] == "exit")
            && !(p_commande.size() > 0 && p_commande[0] == "e"))
@@ -391,7 +391,7 @@ int main()
         std::cout << std::endl;
         std::cout << "inserer une commande" << std::endl;
         std::getline(std::cin, commande);
-        p_commande = split(commande, ' ', true);
+        p_commande = splitCommand(commande);
         std::cout << std::endl;
     }
 
