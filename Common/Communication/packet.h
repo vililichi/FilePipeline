@@ -1,5 +1,6 @@
 #pragma once
 #include <string>
+#include <General/general.h>
 
 #define INIT_PACKET_SIZE 1440
 
@@ -82,21 +83,33 @@ template <typename T>
 inline Packet& Packet::operator<<(const T data_)
 {
     constexpr size_t bytesNbr = sizeof(T) / sizeof(uint8_t);
-
     const uint8_t* cdata = reinterpret_cast<const uint8_t*>(&data_);
-    add(cdata, bytesNbr);
+
+    if (bytesNbr == 1)
+    {
+        add(cdata, bytesNbr);
+    }
+    else
+    {
+        uint8_t dataBytes[bytesNbr];
+        std::copy(cdata, cdata + bytesNbr, dataBytes);
+        ManageEndian(dataBytes, bytesNbr);
+
+        add(dataBytes, bytesNbr);
+    }
+
     return *this;
 }
 
 template <typename T>
 inline Packet& Packet::operator<<(const std::basic_string<T>& data_)
 {
-    constexpr size_t sizeFactor = sizeof(T) / sizeof(uint8_t);
-    const size_t bytesNbr = (data_.size() + 1) * sizeFactor;
+    const T* c_str = data_.c_str();
+    for (size_t i = 0; i < data_.size() + 1; i++)
+    {
+        *this << c_str[i];
+    }
 
-    const uint8_t* cdata = reinterpret_cast<const uint8_t*>(data_.c_str());
-
-    add(cdata, bytesNbr);
     return *this;
 }
 
@@ -111,7 +124,19 @@ inline const Packet& Packet::operator>>(T& data_) const
     if ((m_cursor + bytesNbr) > m_size)
         throw "depassement lors de la lecture";
 
-    data_ = *reinterpret_cast<T*>(m_data + m_cursor);
+    if (bytesNbr == 1)
+    {
+        data_ = *reinterpret_cast<T*>(m_data + m_cursor);
+    }
+    else
+    {
+        uint8_t dataBytes[bytesNbr];
+        std::copy(m_data + m_cursor, m_data + m_cursor + bytesNbr, dataBytes);
+        ManageEndian(dataBytes, bytesNbr);
+
+        data_ = *reinterpret_cast<T*>(dataBytes);
+    }
+    
     m_cursor += bytesNbr;
     return *this;
 }
@@ -132,8 +157,13 @@ inline const Packet& Packet::operator>>(std::basic_string<T>& data_) const
             throw "depassement lors de la lecture";
     }
 
-    data_ = std::string(charData);
-    m_cursor += bytesNbr * sizeFactor + 1;
+    charData = new T[bytesNbr];
+    for (size_t i = 0; i < bytesNbr; i++)
+    {
+        *this >> charData[i];
+    }
+    data_ = std::basic_string<T>(charData);
+
     return *this;
 }
 

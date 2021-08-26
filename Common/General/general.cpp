@@ -2,6 +2,7 @@
 
 #include <filesystem>
 #include <iostream>
+#include <bit>
 
 std::vector <std::string> split(const std::string& chaine, const char separateur, bool separateurMultiple)
 {
@@ -84,4 +85,17 @@ void IgnoreLine()
 void HideCursor(const bool hide_) 
 {
     return;
+}
+
+void ManageEndian(uint8_t* const bytes_, const size_t nbrBytes_)
+{
+    if (std::endian::native == std::endian::big)
+    {
+        uint8_t* copyTable = new  uint8_t[nbrBytes_];
+        std::copy(bytes_, bytes_ + nbrBytes_, copyTable);
+        for (size_t i = 0; i < nbrBytes_ ;i++)
+        {
+            bytes_[i] = copyTable[nbrBytes_ - 1 - i];
+        }
+    }
 }

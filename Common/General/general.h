@@ -12,3 +12,5 @@ void createFolder(const std::string& path);
 void IgnoreLine();
 
 void HideCursor( const bool hide_);
+
+void ManageEndian( uint8_t* const Bytes, const size_t nbrBytes);
