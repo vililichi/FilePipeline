@@ -114,21 +114,35 @@ void download(CryptoSocket* csocket_ptr, const std::string& filename,
     std::string path = folder;
     path += "/" + filename;
 
+	createFolder(folder);
+	std::fstream file(path, std::fstream::out | std::fstream::binary); 
+    if (!file)
+    {
+        std::cout << "Erreur lors de la création du fichier" << std::endl;
+        Packet message;
+        message << false;
+        csocket_ptr->send(message, status);
+        if (ui)
+        {
+            RETURN_IF_MESSAGE(status != sf::TcpSocket::Status::Done, ,
+                CryptoSocket::c_ClientCommErrMsg);
+        }
+
+        return;
+    }
+
     Packet message;
     message << true;
     csocket_ptr->send(message, status);
     if (ui)
     {
         RETURN_IF_MESSAGE(status != sf::TcpSocket::Status::Done, ,
-                          CryptoSocket::c_ClientCommErrMsg);
+            CryptoSocket::c_ClientCommErrMsg);
     }
     else
     {
         RETURN_IF(status != sf::TcpSocket::Status::Done, )
     }
-
-	createFolder(folder);
-	std::fstream file(path, std::fstream::out | std::fstream::binary); 
 
 	Tachymeter tachy;
 	chronometer chronoTotal;
@@ -223,6 +237,7 @@ void upload(CryptoSocket* csocket_ptr, const std::string& filename,
 
     if (!file)
     {
+        std::cout << "Erreur lors de l'ouverture du fichier" << std::endl;
         // envoie de message negatif
         Packet message;
         message << false;
