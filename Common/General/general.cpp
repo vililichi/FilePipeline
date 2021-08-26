@@ -76,3 +76,8 @@ void IgnoreLine()
 {
     std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
 }
+
+void HideCursor(const bool hide_) 
+{
+    return;
+}

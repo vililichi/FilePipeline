@@ -11,3 +11,5 @@ void createFolder(std::string path);
 
 void IgnoreLine();
 
+void HideCursor( const bool hide_);
+
