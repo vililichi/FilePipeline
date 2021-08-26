@@ -2,16 +2,18 @@
 #include <future>
 
 //cryptage d'un paquet à l'aide d'une clé de 240 octets, la taille du packet peu augmenter de 16 octets
-void AES::cryptage(Packet &cible_, char *cle_)
+void AES::cryptage(Packet &cible_, uint8_t *cle_)
 {
 	//random
 	std::random_device ran;
 	//complétion
 	size_t taille = cible_.size();
-	size_t addTaille = 16 - (taille % 16);
-	char *compChaine = new char[addTaille];
+    uint8_t addTaille = 16 - (taille % 16);
+
+    uint8_t* compChaine = new uint8_t[addTaille];
 	compChaine[addTaille - 1] = addTaille;
-	for (int i = addTaille - 2; i >= 0; i--)
+
+	for (int8_t i = addTaille - 2; i >= 0; i--)
 		compChaine[i] = ran();
 	cible_.add(compChaine, addTaille);
 
@@ -26,7 +28,8 @@ void AES::cryptage(Packet &cible_, char *cle_)
 	for (int i = 0; i < cycle; i++)
 	{
 		futures.emplace_back(std::async(
-			std::launch::async, [](char *b16, char *cle)
+            std::launch::async,
+            [](uint8_t* b16, uint8_t* cle)
 			{ AES::cryptage(b16, cle); },
 			cible_.data() + (16 * i), cle_));
 	}
@@ -35,7 +38,7 @@ void AES::cryptage(Packet &cible_, char *cle_)
 }
 
 //décryptage d'un paquet à l'aide d'une clé de 240 octets, la taille du packet peu diminuer de 16 octets
-void AES::decryptage(Packet &cible_, char *cle_)
+void AES::decryptage(Packet& cible_, uint8_t* cle_)
 {
 	//test
 	size_t taille = cible_.size();
@@ -48,7 +51,8 @@ void AES::decryptage(Packet &cible_, char *cle_)
 	for (int i = 0; i < cycle; i++)
 	{
 		futures.emplace_back(std::async(
-			std::launch::async, [](char *b16, char *cle)
+            std::launch::async,
+            [](uint8_t* b16, uint8_t* cle)
 			{ AES::decryptage(b16, cle); },
 			cible_.data() + (16 * i), cle_));
 	}
@@ -56,7 +60,7 @@ void AES::decryptage(Packet &cible_, char *cle_)
 		future.wait();
 
 	//decompletion
-	char addTaille = cible_.data()[taille - 1];
+    uint8_t addTaille = cible_.data()[taille - 1];
 	if (addTaille > 16 || addTaille < 1)
 		throw "dernier bytes impossible, il y a eu un probleme le packet n'est pas valide";
 	cible_.popBack(addTaille);

@@ -10,7 +10,7 @@ constexpr char UP_PATH[] = "operation";
 struct fileInfo
 {
     std::string name = "";
-    uint32_t size = 0;
+    uint64_t size = 0;
 };
 
 std::vector<fileInfo> list(std::string path = UP_PATH);

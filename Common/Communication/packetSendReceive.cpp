@@ -3,9 +3,15 @@
 void packetSender::send(const Packet& pq_, sf::TcpSocket& socket_,
                         sf::Socket::Status& stat_)
 {
-    char* data = new char[pq_.size() + 2];
-    short size = pq_.size();
-    char* csize = (char*)&size;
+    uint8_t* data = new uint8_t[pq_.size() + 2];
+    uint16_t size = static_cast<uint16_t>(pq_.size());
+
+    if (size != pq_.size())
+    {
+        throw; // convertion invalide, il faudrait augmenter la taille de l'espace aloué à la taille d'un paquet
+    }
+
+    uint8_t* csize = (uint8_t*)&size;
     data[0] = csize[0];
     data[1] = csize[1];
     pq_.move(0);
@@ -25,7 +31,7 @@ Packet packetSender::receive(sf::TcpSocket& socket_, sf::Socket::Status& stat_)
     size_t size = 0;
     Packet pq;
     // reception de la taille
-    char cpSize[2];
+    uint8_t cpSize[2];
     while (size != 2)
     {
         size_t addSize = 0;
@@ -36,11 +42,11 @@ Packet packetSender::receive(sf::TcpSocket& socket_, sf::Socket::Status& stat_)
             return pq;
     }
 
-    short pSize = *(short*)cpSize;
+    uint16_t pSize = *(uint16_t*)cpSize;
 
     // reception du packet
     size = 0;
-    char* data = new char[pSize];
+    uint8_t* data = new uint8_t[pSize];
     while (size != pSize)
     {
         size_t addSize = 0;

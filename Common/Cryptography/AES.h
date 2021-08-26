@@ -7,7 +7,7 @@
 namespace AES
 {
 
-	const unsigned char S_BOX[256] = {
+	const uint8_t S_BOX[256] = {
 	99,124,119,123,242,107,111,197,48,1,103,43,254,215,171,118,
 	202,130,201,125,250,89,71,240,173,212,162,175,156,164,114,192,
 	183,253,147,38,54,63,247,204,52,165,229,241,113,216,49,21,
@@ -26,7 +26,7 @@ namespace AES
 	140,161,137,13,191,230,66,104,65,153,45,15,176,84,187,22
 	};
 
-	const unsigned char INV_S_BOX[256] = {
+	const uint8_t INV_S_BOX[256] = {
 	82, 9, 106, 213, 48, 54, 165, 56, 191, 64, 163, 158, 129, 243, 215, 251,
 	124, 227, 57, 130, 155, 47, 255, 135, 52, 142, 67, 68, 196, 222, 233, 203,
 	84, 123, 148, 50, 166, 194, 35, 61, 238, 76, 149, 11, 66, 250, 195, 78,
@@ -46,14 +46,14 @@ namespace AES
 	};
 
 	//génération d'un clé de 32 octets
-	void generation(char* const cle_);
+    void generation(uint8_t* const cle_);
 
 	//expension d'une clé de 32 octets à une clé de 240 octets
-	void expensionCle(char* const cle_);
+    void expensionCle(uint8_t* const cle_);
 
 	//cryptage d'un paquet de 16 octets à l'aide d'une clé de 240 octets
-	void cryptage(char* const b16_, char* const cle_);
+    void cryptage(uint8_t* const b16_, uint8_t* const cle_);
 
 	//décryptage d'un paquet de 16 octets à l'aide d'une clé de 240 octets
-	void decryptage(char* const b16_, char* const cle_);
+    void decryptage(uint8_t* const b16_, uint8_t* const cle_);
 }

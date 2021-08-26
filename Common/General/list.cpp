@@ -1,17 +1,25 @@
 #include "List.h"
+#include "MacroBank.h"
 #include "Communication/Command.h"
 #include <filesystem>
 #include "General.h"
 
 std::vector<fileInfo> getlist(CryptoSocket* csocket_ptr)
 {
+    sf::Socket::Status status;
+
 	//envoie de la demande
 	Packet demande;
 	demande << command::Comm::list;
-	csocket_ptr->send(demande);
+	csocket_ptr->send(demande, status);
+    RETURN_IF_MESSAGE(status != sf::TcpSocket::Status::Done, std::vector<fileInfo> {},
+                      CryptoSocket::c_ClientCommErrMsg);
 
 	//reception de la reponse
-	Packet pq = csocket_ptr->receive();
+	Packet pq = csocket_ptr->receive(status);
+    RETURN_IF_MESSAGE(status != sf::TcpSocket::Status::Done, std::vector<fileInfo> {},
+                      CryptoSocket::c_ClientCommErrMsg);
+
 	size_t size;
 	pq >> size;
 	std::vector<fileInfo> retour;

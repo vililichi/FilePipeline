@@ -12,7 +12,7 @@ protected:
     mutable size_t m_cursor;
 
     // données
-    char* m_data;
+    uint8_t* m_data;
 
 public:
     /*
@@ -36,7 +36,7 @@ public:
     // Retourne la position du curseur de lecture/écriture du paquet
     size_t cursor() const { return m_cursor; }
     // Retourne les données brutes du paquet
-    char* data() const { return m_data; }
+    uint8_t* data() const { return m_data; }
 
     // Indique si la fin du paquet est atteinte
     bool end() const { return m_cursor == m_size; }
@@ -47,7 +47,7 @@ public:
     // Ajoute les données à partir de la position du curseur et déplace le curseur à la
     // fin des données [in] newData_  : Pointeur vers le début des données à ajouter [in]
     // dataSize_ : Taille des données à ajouter
-    void add(const char* const newData_, const size_t dataSize_);
+    void add(const uint8_t* const newData_, const size_t dataSize_);
 
     // Retire les derniers octets du packet
     // [in] nbr_ : Nombre d'octets à retirer
@@ -56,7 +56,7 @@ public:
     // Lit un nombre déterminer de donné et déplace le curseur
     // [in] newData_  : Pointeur vers le début des données à écrire
     // [in] readSize_ : Taille des données à lire
-    void read(char* const data_, const size_t readSize_) const;
+    void read(uint8_t* const data_, const size_t readSize_) const;
 
     // Vide la paquet
     void clear();
@@ -66,34 +66,35 @@ public:
 
     template <typename T>
     Packet& operator<<(const T data);
-    template <>
-    Packet& operator<<(const std::string& data_);
+    template <typename T>
+    inline Packet& operator<<(const std::basic_string<T>& data_);
 
     // operateur pour lecture
 
     template <typename T>
     const Packet& operator>>(T& data_) const;
-    template <>
-    const Packet& operator>>(std::string& data_) const;
+    template <typename T>
+    inline const Packet& operator>>(std::basic_string<T>& data_) const;
 };
 
 #pragma region << operator
 template <typename T>
 inline Packet& Packet::operator<<(const T data_)
 {
-    const size_t bytesNbr = sizeof(T);
+    constexpr size_t bytesNbr = sizeof(T) / sizeof(uint8_t);
 
-    char* cdata = (char*)&data_;
+    const uint8_t* cdata = reinterpret_cast<const uint8_t*>(&data_);
     add(cdata, bytesNbr);
     return *this;
 }
 
-template <>
-inline Packet& Packet::operator<<(const std::string& data_)
+template <typename T>
+inline Packet& Packet::operator<<(const std::basic_string<T>& data_)
 {
-    const size_t bytesNbr = data_.size() + 1;
+    constexpr size_t sizeFactor = sizeof(T) / sizeof(uint8_t);
+    const size_t bytesNbr = (data_.size() + 1)*sizeFactor;
 
-    char* cdata = (char*)data_.c_str();
+    const uint8_t* cdata = reinterpret_cast<const uint8_t*>(data_.c_str());
 
     add(cdata, bytesNbr);
     return *this;
@@ -106,29 +107,33 @@ inline Packet& Packet::operator<<(const std::string& data_)
 template <typename T>
 inline const Packet& Packet::operator>>(T& data_) const
 {
-    const size_t bytesNbr = sizeof(T);
+    constexpr size_t bytesNbr = sizeof(T)/sizeof(uint8_t);
     if ((m_cursor + bytesNbr) > m_size)
         throw "depassement lors de la lecture";
 
-    data_ = *(T*)(m_data + m_cursor);
+    data_ = *reinterpret_cast<T*>(m_data + m_cursor);
     m_cursor += bytesNbr;
     return *this;
 }
 
-template <>
-inline const Packet& Packet::operator>>(std::string& data_) const
+template <typename T>
+inline const Packet& Packet::operator>>(std::basic_string<T>& data_) const
 {
+    constexpr size_t sizeFactor = sizeof(T) / sizeof(uint8_t);
+
     size_t bytesNbr = 0;
-    const size_t virtSize = m_size - 1;
-    while (*(m_data + m_cursor + bytesNbr) != 0)
+    T* charData = reinterpret_cast<T*>(m_data + m_cursor);
+
+
+    while (*(charData + bytesNbr) != '\0')
     {
         bytesNbr++;
-        if ((m_cursor + bytesNbr) > virtSize)
+        if ((m_cursor + bytesNbr * sizeFactor) >= m_size)
             throw "depassement lors de la lecture";
     }
 
-    data_ = std::string(m_data + m_cursor);
-    m_cursor += bytesNbr + 1;
+    data_ = std::string( charData );
+    m_cursor += bytesNbr * sizeFactor + 1;
     return *this;
 }
 

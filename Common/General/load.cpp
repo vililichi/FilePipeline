@@ -3,18 +3,41 @@
 #include "General.h"
 #include "Tachymeter.h"
 #include "List.h"
+#include "MacroBank.h"
 #include <fstream>
 
 void download(CryptoSocket* csocket_ptr, std::string filename, std::string folder, bool ui)
 {
+    sf::TcpSocket::Status status;
+
 	//demande d'Acces
 	Packet pq;
 	pq << command::Comm::download << filename;
-	csocket_ptr->send(pq);
+	csocket_ptr->send(pq, status);
+    if (ui)
+    {
+        RETURN_IF_MESSAGE(status != sf::TcpSocket::Status::Done, ,
+                          CryptoSocket::c_ClientCommErrMsg);
+    }
+    else
+    {
+        RETURN_IF(status != sf::TcpSocket::Status::Done, )
+    }
+
 
 	//analyse de la reponse
 	bool autorisation;
-	Packet autoInfo = csocket_ptr->receive();
+	Packet autoInfo = csocket_ptr->receive(status);
+    if (ui)
+    {
+        RETURN_IF_MESSAGE(status != sf::TcpSocket::Status::Done, ,
+                          CryptoSocket::c_ClientCommErrMsg);
+    }
+    else
+    {
+        RETURN_IF(status != sf::TcpSocket::Status::Done, )
+    }
+
 	autoInfo >> autorisation;
 
 	if (!autorisation)
@@ -23,8 +46,8 @@ void download(CryptoSocket* csocket_ptr, std::string filename, std::string folde
 		return;
 	}
 
-	uint32_t tailleFichier;
-	uint32_t tailleActu = 0;
+	uint64_t tailleFichier;
+	size_t tailleActu = 0;
 	autoInfo >> tailleFichier;
 
 	std::string path = folder;
@@ -32,7 +55,16 @@ void download(CryptoSocket* csocket_ptr, std::string filename, std::string folde
 
 	Packet message;
 	message << true;
-	csocket_ptr->send(message);
+	csocket_ptr->send(message, status);
+    if (ui)
+    {
+        RETURN_IF_MESSAGE(status != sf::TcpSocket::Status::Done, ,
+                          CryptoSocket::c_ClientCommErrMsg);
+    }
+    else
+    {
+        RETURN_IF(status != sf::TcpSocket::Status::Done, )
+    }
 
 	createFolder(folder);
 	std::fstream file(path, std::fstream::out | std::fstream::binary); 
@@ -50,10 +82,19 @@ void download(CryptoSocket* csocket_ptr, std::string filename, std::string folde
 	while (tailleActu < tailleFichier)
 	{
 		//reception
-		Packet fchunk = csocket_ptr->receive();
+		Packet fchunk = csocket_ptr->receive(status);
+        if (status != sf::TcpSocket::Status::Done)
+        {
+            if (ui)
+            {
+                std::cout << CryptoSocket::c_ClientCommErrMsg << std::endl;
+            }
+            file.close();
+            return;
+        }
 
 		//ecriture
-		file.write(fchunk.data() + fchunk.cursor(), fchunk.size());
+		file.write( reinterpret_cast<char *>( fchunk.data() + fchunk.cursor() ), fchunk.size() );
 
 		//suivie
 		tailleActu += fchunk.size();
@@ -83,6 +124,8 @@ void download(CryptoSocket* csocket_ptr, std::string filename, std::string folde
 
 void upload(CryptoSocket* csocket_ptr, std::string filename,std::string folder, bool ui)
 {
+    sf::TcpSocket::Status status;
+
 	//test de la validité du fichier
 	std::vector<fileInfo> liste = list();
 	bool presence = false;
@@ -93,7 +136,13 @@ void upload(CryptoSocket* csocket_ptr, std::string filename,std::string folder, 
 		//envoie de message negatif
 		Packet message;
 		message << false;
-		csocket_ptr->send(message);
+		csocket_ptr->send(message, status);
+        if (ui)
+        {
+            RETURN_IF_MESSAGE(status != sf::TcpSocket::Status::Done, ,
+                              CryptoSocket::c_ClientCommErrMsg);
+        }
+
 		return;
 	}
 
@@ -106,27 +155,52 @@ void upload(CryptoSocket* csocket_ptr, std::string filename,std::string folder, 
 		//envoie de message negatif
 		Packet message;
 		message << false;
-		csocket_ptr->send(message);
+		csocket_ptr->send(message, status);
+        if (ui)
+        {
+            RETURN_IF_MESSAGE(status != sf::TcpSocket::Status::Done, ,
+                              CryptoSocket::c_ClientCommErrMsg);
+        }
+
 		return;
 	}
 
 
 	//envoie de message positif
 	Packet prepq;
-	uint32_t tailleFichier = liste[position].size;
+	uint64_t tailleFichier = liste[position].size;
 	prepq << true << tailleFichier;
-	csocket_ptr->send(prepq);
+	csocket_ptr->send(prepq, status);
+    if (ui)
+    {
+        RETURN_IF_MESSAGE(status != sf::TcpSocket::Status::Done, ,
+                          CryptoSocket::c_ClientCommErrMsg);
+    }
+    else
+    {
+        RETURN_IF(status != sf::TcpSocket::Status::Done, )
+    }
 
 	//reception d'une confirmation
 	Packet depart;
-	depart = csocket_ptr->receive();
+	depart = csocket_ptr->receive(status);
+    if (ui)
+    {
+        RETURN_IF_MESSAGE(status != sf::TcpSocket::Status::Done, ,
+                          CryptoSocket::c_ClientCommErrMsg);
+    }
+    else
+    {
+        RETURN_IF(status != sf::TcpSocket::Status::Done, )
+    }
+
 	if (depart.size() == 0 || depart.data()[0] == false) return;
 
 	//téléversement
 	Tachymeter tachy;
 	chronometer chronoTotal;
 	uint16_t trigger = 0;
-	uint32_t tailleActu = 0;
+	size_t tailleActu = 0;
 	if (ui)
 	{
 		std::cout << 0 << "\t\t| " << tailleFichier;
@@ -142,11 +216,21 @@ void upload(CryptoSocket* csocket_ptr, std::string filename,std::string folder, 
 		char data[maxSize];
 		size_t size = 0;
 
-		file.read(data, maxSize);
+		file.read( data, maxSize);
 		size = file.gcount();
 
-		fchunk.add(data, size);
-		csocket_ptr->send(fchunk);
+		fchunk.add(reinterpret_cast<uint8_t*>(data), size);
+
+		csocket_ptr->send(fchunk, status);
+        if ( status != sf::TcpSocket::Status::Done )
+        {
+            if (ui)
+            {
+                std::cout << CryptoSocket::c_ClientCommErrMsg << std::endl;
+            }
+            file.close();
+			return;
+        }
 
 		//suivie
 		if (ui)
@@ -188,12 +272,18 @@ void uploadDemand(CryptoSocket* csocket_ptr, std::string filename, std::string f
 	}
 
 	//Envoie d'une demande d'upload
+    sf::TcpSocket::Status status;
+
 	Packet pq;
 	pq << command::Comm::upload << filename;
-	csocket_ptr->send(pq);
+	csocket_ptr->send(pq, status);
+    RETURN_IF_MESSAGE(status != sf::TcpSocket::Status::Done, ,
+                      CryptoSocket::c_ClientCommErrMsg);
 
 	//attente d'une reponse
-	Packet rep = csocket_ptr->receive();
+	Packet rep = csocket_ptr->receive(status);
+    RETURN_IF_MESSAGE(status != sf::TcpSocket::Status::Done, ,
+                      CryptoSocket::c_ClientCommErrMsg);
 	bool fichierOk;
 	rep >> fichierOk;
 	if (!fichierOk)
@@ -201,15 +291,23 @@ void uploadDemand(CryptoSocket* csocket_ptr, std::string filename, std::string f
 		std::cout << "destination refusee" << std::endl;
 	}
 	rep.move(0);
-	rep = csocket_ptr->receive();
+	rep = csocket_ptr->receive(status);
+    RETURN_IF_MESSAGE(status != sf::TcpSocket::Status::Done, ,
+                      CryptoSocket::c_ClientCommErrMsg);
+
 	char commande;
 	rep >> commande;
-	if (commande != command::Comm::download)
-	{
-		std::cout << "reponse invalide" << std::endl;
-		pq.move(0);
-		pq << false;
-		csocket_ptr->send(pq);
+    if (commande != command::Comm::download)
+    {
+        std::cout << "reponse invalide" << std::endl;
+        pq.move(0);
+        pq << false;
+        csocket_ptr->send(pq, status);
+        if (status != sf::TcpSocket::Status::Done)
+        {
+            std::cout << CryptoSocket::c_ClientCommErrMsg << std::endl;
+        }
+
 		return;
 	}
 
@@ -221,7 +319,12 @@ void uploadDemand(CryptoSocket* csocket_ptr, std::string filename, std::string f
 		std::cout << "fichier non conforme" << std::endl;
 		pq.move(0);
 		pq << false;
-		csocket_ptr->send(pq);
+		csocket_ptr->send(pq, status);
+        if (status != sf::TcpSocket::Status::Done)
+        {
+            std::cout << CryptoSocket::c_ClientCommErrMsg << std::endl;
+        }
+
 		return;
 	}
 

@@ -88,7 +88,7 @@ void RSA::decryptage(inft& message_, const cle& clePrive_)
 Packet& operator<<(Packet& packet_, const inft& val_)
 {
     packet_ << val_.size() * 4;
-    packet_.add((char*)val_(), val_.size() * 4);
+    packet_.add(reinterpret_cast<const uint8_t*>(val_()), val_.size() * 4);
     packet_ << val_.isNegatif();
     return packet_;
 }
@@ -104,11 +104,11 @@ Packet& operator>>(Packet& packet_, inft& val_)
     size_t taille;
     bool negative;
     packet_ >> taille;
-    char* cptr = new char[taille];
+    uint8_t* cptr = new uint8_t[taille];
     packet_.read(cptr, taille);
     packet_ >> negative;
 
-    val_ = inft((uint8_t*)cptr, taille, negative);
+    val_ = inft( cptr, taille, negative );
     delete[] cptr;
     return packet_;
 }
@@ -128,7 +128,7 @@ void RSA::storeKey(const cle& cleQuelque_, const std::string& path_)
     std::ofstream file;
     file.open(path_, std::ostream::out | std::ostream::binary);
     file << pq.size();
-    file.write(pq.data(), pq.size());
+    file.write( reinterpret_cast<char*>( pq.data() ), pq.size());
     file.close();
 }
 void RSA::storeKeySet(const cle& clePrive_, const cle& clePublic_,
@@ -141,7 +141,7 @@ void RSA::storeKeySet(const cle& clePrive_, const cle& clePublic_,
     std::ofstream file;
     file.open(path_, std::ostream::out | std::ostream::binary);
     file << pq.size();
-    file.write(pq.data(), pq.size());
+    file.write(reinterpret_cast<char*>(pq.data()) , pq.size());
     file.close();
 }
 bool RSA::getKey(cle& cleQuelque_, const std::string& path_)
@@ -159,7 +159,7 @@ bool RSA::getKey(cle& cleQuelque_, const std::string& path_)
     file.close();
 
     Packet pq(size);
-    pq.add(cptr, size);
+    pq.add(reinterpret_cast<uint8_t*>(cptr), size);
     pq.move(0);
     pq >> cleQuelque_;
 
@@ -180,7 +180,7 @@ bool RSA::getKeySet(cle& clePrive_, cle& clePublic_, const std::string& path_)
     file.close();
 
     Packet pq(size);
-    pq.add(cptr, size);
+    pq.add( reinterpret_cast<uint8_t*>(cptr), size);
     pq.move(0);
     pq >> clePrive_;
     pq >> clePublic_;

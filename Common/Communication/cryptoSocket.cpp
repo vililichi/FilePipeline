@@ -92,8 +92,7 @@ bool CryptoSocket::sendHandShake(RSA::cle cle_RSA_public_, RSA::cle cle_RSA_priv
     // Validation de la confiance
     pq.clear();
     pq = packetSender::receive(*m_socket_ptr, status);
-    RETURN_IF_MESSAGE(status != sf::TcpSocket::Status::Done, false,
-                      "Erreur lors de la communication avec le serveur");
+    RETURN_IF_MESSAGE(status != sf::TcpSocket::Status::Done, false, c_ClientCommErrMsg);
 
     bool confiance = false;
     pq >> confiance;
@@ -108,8 +107,7 @@ bool CryptoSocket::sendHandShake(RSA::cle cle_RSA_public_, RSA::cle cle_RSA_priv
     // Preuve d'authenticité
     pq.clear();
     pq = packetSender::receive(*m_socket_ptr, status);
-    RETURN_IF_MESSAGE(status != sf::TcpSocket::Status::Done, false,
-                      "Erreur lors de la communication avec le serveur");
+    RETURN_IF_MESSAGE(status != sf::TcpSocket::Status::Done, false, c_ClientCommErrMsg);
 
     if (status != sf::Socket::Status::Done)
     {
@@ -122,13 +120,11 @@ bool CryptoSocket::sendHandShake(RSA::cle cle_RSA_public_, RSA::cle cle_RSA_priv
     pq.clear();
     pq << val;
     packetSender::send(pq, *m_socket_ptr, status);
-    RETURN_IF_MESSAGE(status != sf::TcpSocket::Status::Done, false,
-                      "Erreur lors de la communication avec le serveur");
+    RETURN_IF_MESSAGE(status != sf::TcpSocket::Status::Done, false, c_ClientCommErrMsg);
 
     pq.clear();
     pq = packetSender::receive(*m_socket_ptr, status);
-    RETURN_IF_MESSAGE(status != sf::TcpSocket::Status::Done, false,
-                      "Erreur lors de la communication avec le serveur");
+    RETURN_IF_MESSAGE(status != sf::TcpSocket::Status::Done, false, c_ClientCommErrMsg);
 
     bool authentic = false;
     pq >> authentic;
@@ -138,15 +134,14 @@ bool CryptoSocket::sendHandShake(RSA::cle cle_RSA_public_, RSA::cle cle_RSA_priv
 
     // réception de la clé symétrique
     pq = packetSender::receive(*m_socket_ptr, status);
-    RETURN_IF_MESSAGE(status != sf::TcpSocket::Status::Done, false,
-                      "Erreur lors de la communication avec le serveur");
+    RETURN_IF_MESSAGE(status != sf::TcpSocket::Status::Done, false, c_ClientCommErrMsg);
 
     inft inft_cle;
     pq >> inft_cle;
 
     RSA::decryptage(inft_cle, cle_RSA_privee_);
-    char* cle_reception = (char*)inft_cle();
-    for (int i = 0; i < 32; i++)
+    uint8_t* cle_reception = reinterpret_cast<uint8_t*>(inft_cle());
+    for (uint8_t i = 0; i < 32; i++)
     {
         m_cle[i] = cle_reception[i];
     }
@@ -212,7 +207,7 @@ bool CryptoSocket::getHandShake()
     AES::generation(m_cle);
 
     // envoie de la clé symétrique
-    inft cle_inft((uint8_t*)m_cle, 32);
+    inft cle_inft( m_cle, 32);
     RSA::cryptage(cle_inft, cle_RSA_public);
     pq << cle_inft;
     packetSender::send(pq, *m_socket_ptr, status);

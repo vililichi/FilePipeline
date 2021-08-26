@@ -44,7 +44,11 @@ public:
     // Retourne le nom du point d'acces du CryptoSocket
     std::string getAcces() { return m_acces; }
 
+    // Message pour les erreurs de communication
+    static constexpr char c_ClientCommErrMsg[] =
+        "Erreur lors de la communication avec le serveur";
+
 protected:
-    char m_cle[240];
+    uint8_t m_cle[240];
     std::string m_acces;
 };
