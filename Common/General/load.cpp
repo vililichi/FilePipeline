@@ -19,16 +19,16 @@ static void updateStateBar( const uint64_t actualState_, const uint64_t objectif
     std::cout.setf(std::ios::left, std::ios::adjustfield);
 	if (objectif_ >> 30 >= 100)
     {
-        // Affichage Ko
+        // Affichage Go
         std::cout << std::setfill(' ') << std::setw(10)
                   << std::to_string(actualState_ >> 30) + " Go" << '|';
 
         std::cout << std::setfill(' ') << std::setw(10)
-                  << std::to_string(objectif_ >> 20) + " Go";
+                  << std::to_string(objectif_ >> 30) + " Go";
     }
 	else if (objectif_ >> 20 >= 100)
     {
-		// Affichage Ko
+		// Affichage Mo
         std::cout << std::setfill(' ') << std::setw(10)
                   << std::to_string(actualState_ >> 20) + " Mo" << '|';
 
@@ -37,7 +37,7 @@ static void updateStateBar( const uint64_t actualState_, const uint64_t objectif
     }
     else
     {
-		// Affichage Mo
+		// Affichage Ko
         std::cout << std::setfill(' ') << std::setw(10)
                   << std::to_string(actualState_ >> 10) + " Ko" << '|';
 

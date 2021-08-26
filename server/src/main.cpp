@@ -186,7 +186,7 @@ int main()
 {
     // creation des répertoires utiles
     createFolder(UP_PATH);
-    createFolder(THRUST_PATH);
+    createFolder(TRUST_PATH);
     createFolder(UNTRUST_PATH);
 
     // instanciation
@@ -310,7 +310,7 @@ int main()
         // key
         else if (p_commande[0] == "ky" || p_commande[0] == "key")
         {
-            std::vector<fileInfo> thrust = list(THRUST_PATH);
+            std::vector<fileInfo> thrust = list(TRUST_PATH);
             std::vector<fileInfo> uthrust = list(UNTRUST_PATH);
             std::cout << "acces :" << std::endl;
             for (int i = 0; i < thrust.size(); i++)
@@ -337,7 +337,7 @@ int main()
                     {
                         std::string old_path = UNTRUST_PATH;
                         old_path += "/" + p_commande[1];
-                        std::string new_path = THRUST_PATH;
+                        std::string new_path = TRUST_PATH;
                         new_path += "/" + p_commande[1];
                         std::rename(old_path.c_str(), new_path.c_str());
                         std::remove(old_path.c_str());
@@ -360,13 +360,13 @@ int main()
         {
             if (p_commande.size() >= 2)
             {
-                std::vector<fileInfo> uthrust = list(THRUST_PATH);
+                std::vector<fileInfo> uthrust = list(TRUST_PATH);
                 bool find = false;
                 for (size_t i = 0; i < uthrust.size(); i++)
                 {
                     if (uthrust[i].name == p_commande[1])
                     {
-                        std::string old_path = THRUST_PATH;
+                        std::string old_path = TRUST_PATH;
                         old_path += "/" + p_commande[1];
                         std::string new_path = UNTRUST_PATH;
                         new_path += "/" + p_commande[1];
