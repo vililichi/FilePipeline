@@ -1,8 +1,8 @@
 #include "general.h"
 
+#include <bit>
 #include <filesystem>
 #include <iostream>
-#include <bit>
 
 
 std::vector<std::string> split(const std::string& chaine, const char separateur,
@@ -86,11 +86,11 @@ void ignoreLine()
 
 void ManageEndian(uint8_t* const bytes_, const size_t nbrBytes_)
 {
-    if (std::endian::native == std::endian::big)
+    if constexpr (std::endian::native == std::endian::big)
     {
-        uint8_t* copyTable = new  uint8_t[nbrBytes_];
+        uint8_t* copyTable = new uint8_t[nbrBytes_];
         std::copy(bytes_, bytes_ + nbrBytes_, copyTable);
-        for (size_t i = 0; i < nbrBytes_ ;i++)
+        for (size_t i = 0; i < nbrBytes_; i++)
         {
             bytes_[i] = copyTable[nbrBytes_ - 1 - i];
         }
@@ -98,7 +98,7 @@ void ManageEndian(uint8_t* const bytes_, const size_t nbrBytes_)
 }
 
 #ifdef _WIN32
-#include <windows.h>
+    #include <windows.h>
 #endif // _WIN32
 
 void hideCursor(const bool hide_)
@@ -115,7 +115,8 @@ void hideCursor(const bool hide_)
     {
         info.bVisible = TRUE;
     }
-    if (SetConsoleCursorInfo(consoleHandle, &info) == FALSE) throw;
+    if (SetConsoleCursorInfo(consoleHandle, &info) == FALSE)
+        throw;
 #endif // _WIN32
 
     return;
