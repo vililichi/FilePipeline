@@ -1,15 +1,18 @@
 ﻿#include "Communication/command.h"
-#include "General/General.h"
-#include "General/List.h"
-#include "General/Load.h"
+#include "General/general.h"
+#include "General/list.h"
+#include "General/load.h"
+#include "cmds/cmds.h"
+#include "repl/repl.h"
 
 #include <iostream>
+#include <mutex>
 #include <thread>
 
 #pragma region thread
 void traitementPacket(CryptoSocket* csocket_ptr, Packet& pq)
 {
-    char commande;
+    uint8_t commande;
     pq >> commande;
     switch (commande)
     {
@@ -18,8 +21,8 @@ void traitementPacket(CryptoSocket* csocket_ptr, Packet& pq)
             Packet reponse;
             std::vector<fileInfo> liste = list();
             reponse << liste.size();
-            for (size_t i = 0; i < liste.size(); i++)
-                reponse << liste[i].name << liste[i].size;
+            for (const auto& file : liste)
+                reponse << file.name << file.size;
             csocket_ptr->send(reponse);
             break;
         }
@@ -64,9 +67,9 @@ void traitementPacket(CryptoSocket* csocket_ptr, Packet& pq)
             }
             else
             {
-                for (size_t i = 0; i < files.size(); i++)
+                for (const auto& file : files)
                 {
-                    if (files[i].name == oldName)
+                    if (file.name == oldName)
                     {
                         std::string old_path = DOWN_PATH;
                         old_path += "/" + oldName;
@@ -98,9 +101,9 @@ void traitementPacket(CryptoSocket* csocket_ptr, Packet& pq)
             pq >> name;
             std::vector<fileInfo> files = list(DOWN_PATH);
             bool find = false;
-            for (size_t i = 0; i < files.size(); i++)
+            for (const auto& file : files)
             {
-                if (files[i].name == name)
+                if (file.name == name)
                 {
                     std::string path = DOWN_PATH;
                     path += "/" + name;
@@ -148,10 +151,10 @@ void socketFunction(CryptoSocket** tcp_ptr)
         traitementPacket(cSocket, pq);
     }
     delete *tcp_ptr;
-    *tcp_ptr = NULL;
+    *tcp_ptr = nullptr;
 }
 void listeningFunction(sf::TcpListener* listener_ptr,
-                       std::vector<CryptoSocket**>* socketptr_List)
+                       std::vector<CryptoSocket**>* socketptr_List, std::mutex* mutex)
 {
     std::vector<std::thread> socketThread;
     while (true)
@@ -169,8 +172,15 @@ void listeningFunction(sf::TcpListener* listener_ptr,
         }
         (*new_socket_ptr)->m_socket_ptr->setBlocking(true);
         socketThread.emplace_back(&socketFunction, new_socket_ptr);
-        socketptr_List->push_back(new_socket_ptr);
+
+        {
+            std::lock_guard lock(*mutex);
+            socketptr_List->push_back(new_socket_ptr);
+        }
     }
+
+    std::lock_guard lock(*mutex);
+
     for (size_t i = 0; i < socketptr_List->size(); i++)
     {
         if (*(*socketptr_List)[i])
@@ -182,223 +192,152 @@ void listeningFunction(sf::TcpListener* listener_ptr,
 }
 #pragma endregion
 
-int main()
+void createFolders()
 {
-    // creation des répertoires utiles
     createFolder(UP_PATH);
     createFolder(TRUST_PATH);
     createFolder(UNTRUST_PATH);
+}
 
-    // instanciation
-    sf::TcpListener listener;
-
-    unsigned short port;
-    while (true)
+#pragma region socket
+class SocketListener
+{
+public:
+    virtual ~SocketListener()
     {
-        // Obtention du port
-        std::cout << "port: " << std::flush;
-        std::cin >> port;
-        if (std::cin.fail())
+        listener.setBlocking(false);
+        listener.close();
+        if (listeningThread && listeningThread->joinable())
         {
-            std::cout << "Valeur invalide\n";
-            std::cin.clear();
-            IgnoreLine();
-            continue;
+            std::cout << "Fermeture en cours..." << std::endl;
+            listeningThread->join();
         }
-        break;
+    }
+    [[nodiscard]] std::pair<std::vector<CryptoSocket**>*, std::mutex*> connectListener()
+    {
+        listener.listen(getPort());
+        std::cout << "Connecte au port [" << listener.getLocalPort() << "]\n"
+                  << std::endl;
+
+        listeningThread = std::make_unique<std::thread>(
+            &listeningFunction, &listener, &socketPtrList, &socketPtrListMutex);
+
+        return {&socketPtrList, &socketPtrListMutex};
     }
 
-    // ouverture du listener
-    listener.listen(port);
-    std::cout << listener.getLocalPort() << std::endl;
+protected:
+    virtual uint16_t getPort() = 0;
 
-    std::vector<CryptoSocket**> socketptr_List;
-    std::thread listeningThread(&listeningFunction, &listener, &socketptr_List);
+private:
+    sf::TcpListener listener;
+    std::unique_ptr<std::thread> listeningThread;
+    std::vector<CryptoSocket**> socketPtrList;
+    std::mutex socketPtrListMutex;
+};
+
+class InteractiveSocketListener : public SocketListener
+{
+protected:
+    uint16_t getPort() override
+    {
+        uint16_t port;
+        while (true)
+        {
+            // Obtention du port
+            std::cout << "Port du serveur: " << std::flush;
+            std::cin >> port;
+            if (std::cin.fail())
+            {
+                std::cout << "Valeur invalide\n";
+                std::cin.clear();
+                ignoreLine();
+                continue;
+            }
+            ignoreLine();
+            break;
+        }
+        return port;
+    }
+};
+#pragma endregion socket
+
+#pragma region repl
+std::unique_ptr<repl::Repl> createRepl(std::vector<CryptoSocket**>* socketList,
+                                       std::mutex* mutex)
+{
+    using repl::ParamVec;
+
+    auto clientRepl = std::make_unique<repl::Repl>();
+
+    clientRepl->addExitCommand();
+    clientRepl->addHelpCommand();
+    clientRepl->setUnknownCommandString("Commande inconnue :");
+
+    clientRepl->addCommand(
+        "list", [](const ParamVec& command) -> bool { return cmd::listCmd(command); },
+        "Liste les fichiers telechargeables", {"ls"});
+
+    clientRepl->addCommand("user",
+                           [socketList, mutex](const ParamVec& command) -> bool
+                           { return cmd::userCmd(*socketList, *mutex, command); },
+                           "Liste les utilisateurs sous la forme \"ip | port | acces\"",
+                           {"u"});
+
+    clientRepl->addCommand(
+        "key", [mutex](const ParamVec& command) -> bool { return cmd::keyCmd(command); },
+        "Liste toutes les cles d'acces");
+
+    clientRepl->addCommand(
+        "trust", [](const ParamVec& command) -> bool { return cmd::trustCmd(command); },
+        "Accorde l'acces au detenteur de la cle <cle>", {"t"}, "<cle>");
+
+    clientRepl->addCommand(
+        "untrust",
+        [](const ParamVec& command) -> bool { return cmd::untrustCmd(command); },
+        "Retire l'acces au detenteur de la cle <cle>", {"ut"}, "<cle>");
+
+    clientRepl->addCommand(
+        "kick",
+        [socketList, mutex](const ParamVec& command) -> bool
+        { return cmd::kickCmd(*socketList, *mutex, command); },
+        "Deconnecte les utilisateurs pour une <ip> donnee. Si le [port] est specifie, ne "
+        "deconnecte que l'utilisateur utilisant ce port",
+        {}, "<ip> [port]");
+
+    return clientRepl;
+}
+#pragma endregion repl
+
+int main()
+{
+    // creation des répertoires utiles
+    createFolders();
+
+    std::unique_ptr<SocketListener> socketListener =
+        std::make_unique<InteractiveSocketListener>();
+    auto [sockets, mutex] = socketListener->connectListener();
+
+    // repl
+    auto replPtr = createRepl(sockets, mutex);
 
     std::string commande = "h";
     std::vector<std::string> p_commande = splitCommand(commande);
 
-    while (!(p_commande.size() > 0 && p_commande[0] == "exit")
-           && !(p_commande.size() > 0 && p_commande[0] == "e"))
+    bool shouldContinue = true;
+
+    while (shouldContinue)
     {
-        if (p_commande.size() == 0)
-            ;
-        // help
-        else if (p_commande[0] == "h" || p_commande[0] == "help")
+        shouldContinue = replPtr->parse(p_commande);
+
+        if (shouldContinue)
         {
-            std::cout << "exit : ferme le programme" << std::endl;
-            std::cout << "help : liste toutes les commandes" << std::endl;
-            std::cout << "key  : leste toutes les cle d'acces" << std::endl;
-            std::cout << "kick [ip] [port] : deconnecte un utilisateur, si le port est "
-                         "omis, tout les utilisateurs de l'ip sont deconnectes"
-                      << std::endl;
-            std::cout << "list : liste tout les fichiers telechargeables" << std::endl;
-            std::cout << "thrust [cle] : accorde l'acces a la cle" << std::endl;
-            std::cout << "unthrust [cle] : retire l'acces a la cle" << std::endl;
-            std::cout << "user : liste les utilisateurs ip | port | acces" << std::endl;
-        }
-        // liste
-        else if (p_commande[0] == "ls" || p_commande[0] == "list")
-        {
-            std::cout << "fichiers disponibles :" << std::endl;
-            std::vector<fileInfo> liste = list();
-            for (size_t i = 0; i < liste.size(); i++)
-                std::cout << liste[i].name << '\t' << liste[i].size << std::endl;
-        }
-        // user
-        else if (p_commande[0] == "u" || p_commande[0] == "user")
-        {
-            std::cout << "utilisateurs :" << std::endl;
-            for (size_t i = 0; i < socketptr_List.size(); i++)
-            {
-                CryptoSocket* socketptr = *socketptr_List[i];
-                if (socketptr)
-                    std::cout << socketptr->m_socket_ptr->getRemoteAddress().toString()
-                              << " | " << socketptr->m_socket_ptr->getRemotePort()
-                              << " | " << socketptr->getAcces() << std::endl;
-            }
-        }
-        // kick
-        else if (p_commande[0] == "kck" || p_commande[0] == "kick")
-        {
-            if (p_commande.size() >= 2)
-            {
-                std::cout << "les utilisateurs suivant ont ete retires :" << std::endl;
-                std::string ip = p_commande[1];
-                if (p_commande.size() >= 3)
-                {
-                    uint16_t port = std::stoi(p_commande[2]);
-                    for (size_t i = 0; i < socketptr_List.size(); i++)
-                    {
-                        CryptoSocket* socketptr = *socketptr_List[i];
-                        if (socketptr
-                            && socketptr->m_socket_ptr->getRemoteAddress().toString()
-                                   == ip
-                            && socketptr->m_socket_ptr->getRemotePort() == port)
-                        {
-                            std::cout
-                                << socketptr->m_socket_ptr->getRemoteAddress().toString()
-                                << " | " << socketptr->m_socket_ptr->getRemotePort()
-                                << std::endl;
-                            socketptr->m_socket_ptr->disconnect();
-                        }
-                    }
-                }
-                else
-                {
-                    for (size_t i = 0; i < socketptr_List.size(); i++)
-                    {
-                        CryptoSocket* socketptr = *socketptr_List[i];
-                        if (socketptr
-                            && socketptr->m_socket_ptr->getRemoteAddress().toString()
-                                   == ip)
-                        {
-                            std::cout
-                                << socketptr->m_socket_ptr->getRemoteAddress().toString()
-                                << " | " << socketptr->m_socket_ptr->getRemotePort()
-                                << std::endl;
-                            socketptr->m_socket_ptr->disconnect();
-                        }
-                    }
-                }
-            }
-            else
-            {
-                std::cout << "arguments manquants :" << std::endl;
-            }
-        }
-        // key
-        else if (p_commande[0] == "ky" || p_commande[0] == "key")
-        {
-            std::vector<fileInfo> thrust = list(TRUST_PATH);
-            std::vector<fileInfo> uthrust = list(UNTRUST_PATH);
-            std::cout << "acces :" << std::endl;
-            for (int i = 0; i < thrust.size(); i++)
-            {
-                std::cout << thrust[i].name << std::endl;
-            }
             std::cout << std::endl;
-            std::cout << "acces en attente :" << std::endl;
-            for (int i = 0; i < uthrust.size(); i++)
-            {
-                std::cout << uthrust[i].name << std::endl;
-            }
+            replPtr->printPrompt();
+            std::getline(std::cin, commande);
+            p_commande = splitCommand(commande);
+            std::cout << std::endl;
         }
-        // thrust
-        else if (p_commande[0] == "t" || p_commande[0] == "thrust")
-        {
-            if (p_commande.size() >= 2)
-            {
-                std::vector<fileInfo> uthrust = list(UNTRUST_PATH);
-                bool find = false;
-                for (size_t i = 0; i < uthrust.size(); i++)
-                {
-                    if (uthrust[i].name == p_commande[1])
-                    {
-                        std::string old_path = UNTRUST_PATH;
-                        old_path += "/" + p_commande[1];
-                        std::string new_path = TRUST_PATH;
-                        new_path += "/" + p_commande[1];
-                        std::rename(old_path.c_str(), new_path.c_str());
-                        std::remove(old_path.c_str());
-                        find = true;
-                        break;
-                    }
-                }
-                if (!find)
-                {
-                    std::cout << "cle introuvable" << std::endl;
-                }
-                else
-                {
-                    std::cout << "accord de l'acces de la cle" << std::endl;
-                }
-            }
-        }
-        // unthrust
-        else if (p_commande[0] == "ut" || p_commande[0] == "unthrust")
-        {
-            if (p_commande.size() >= 2)
-            {
-                std::vector<fileInfo> uthrust = list(TRUST_PATH);
-                bool find = false;
-                for (size_t i = 0; i < uthrust.size(); i++)
-                {
-                    if (uthrust[i].name == p_commande[1])
-                    {
-                        std::string old_path = TRUST_PATH;
-                        old_path += "/" + p_commande[1];
-                        std::string new_path = UNTRUST_PATH;
-                        new_path += "/" + p_commande[1];
-                        std::rename(old_path.c_str(), new_path.c_str());
-                        std::remove(old_path.c_str());
-                        find = true;
-                        break;
-                    }
-                }
-                if (!find)
-                {
-                    std::cout << "cle introuvable" << std::endl;
-                }
-                else
-                {
-                    std::cout << "retrait de l'acces de la cle" << std::endl;
-                }
-            }
-        }
-
-        // prise de commande
-        std::cout << std::endl;
-        std::cout << "inserer une commande" << std::endl;
-        std::getline(std::cin, commande);
-        p_commande = splitCommand(commande);
-        std::cout << std::endl;
     }
-
-    // destruction
-    listener.close();
-    if (listeningThread.joinable())
-        listeningThread.join();
 
     return 0;
 }

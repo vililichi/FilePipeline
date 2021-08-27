@@ -9,15 +9,16 @@
 #include <fstream>
 #include <iomanip>
 
-// Met � jour la barre de chargement dans la console
-// [in] actualState_ : Nombre d'octet transf�r�s 
-// [in] objectif_    : Nombre d'octet � transf�r�s
+// Met à jour la barre de chargement dans la console
+// [in] actualState_ : Nombre d'octet transférés
+// [in] objectif_    : Nombre d'octet à transférer
 // [in] speed_       : Vitesse de transfert o/s
-// [in] final_       : true s'il s'agit de la derni�re mise � jour
-static void updateStateBar( const uint64_t actualState_, const uint64_t objectif_, const uint32_t speed_, const bool final_ = false ) 
+// [in] final_       : true s'il s'agit de la dernière mise à jour
+static void updateStateBar(const uint64_t actualState_, const uint64_t objectif_,
+                           const uint32_t speed_, const bool final_ = false)
 {
     std::cout.setf(std::ios::left, std::ios::adjustfield);
-	if (objectif_ >> 30 >= 100)
+    if (objectif_ >> 30 >= 100)
     {
         // Affichage Go
         std::cout << std::setfill(' ') << std::setw(10)
@@ -26,9 +27,9 @@ static void updateStateBar( const uint64_t actualState_, const uint64_t objectif
         std::cout << std::setfill(' ') << std::setw(10)
                   << std::to_string(objectif_ >> 30) + " Go";
     }
-	else if (objectif_ >> 20 >= 100)
+    else if (objectif_ >> 20 >= 100)
     {
-		// Affichage Mo
+        // Affichage Mo
         std::cout << std::setfill(' ') << std::setw(10)
                   << std::to_string(actualState_ >> 20) + " Mo" << '|';
 
@@ -37,7 +38,7 @@ static void updateStateBar( const uint64_t actualState_, const uint64_t objectif
     }
     else
     {
-		// Affichage Ko
+        // Affichage Ko
         std::cout << std::setfill(' ') << std::setw(10)
                   << std::to_string(actualState_ >> 10) + " Ko" << '|';
 
@@ -45,10 +46,9 @@ static void updateStateBar( const uint64_t actualState_, const uint64_t objectif
                   << std::to_string(objectif_ >> 10) + " Ko";
     }
 
-	std::cout.setf(std::ios::right, std::ios::adjustfield);
-	if (speed_ >> 10 >= 10)
+    std::cout.setf(std::ios::right, std::ios::adjustfield);
+    if (speed_ >> 10 >= 10)
     {
-
         std::cout << std::setfill(' ') << std::setw(7) << (speed_ >> 10) << "Mo/s\r";
     }
     else
@@ -56,13 +56,13 @@ static void updateStateBar( const uint64_t actualState_, const uint64_t objectif
         std::cout << std::setfill(' ') << std::setw(7) << speed_ << "Ko/s\r";
     }
 
-	std::cout.setf(std::ios::right, std::ios::adjustfield);
-	
+    std::cout.setf(std::ios::right, std::ios::adjustfield);
+
 
     if (final_)
         std::cout << std::endl;
     else
-		std::cout << std::flush;
+        std::cout << std::flush;
 }
 
 void download(CryptoSocket* csocket_ptr, const std::string& filename,
@@ -149,55 +149,56 @@ void download(CryptoSocket* csocket_ptr, const std::string& filename,
 	uint16_t trigger = 0;
 	if (ui)
 	{
-        HideCursor(true);
+        hideCursor(true);
         updateStateBar(0, tailleFichier, 0);
-		chronoTotal.start();
-		tachy.start();
-	}
+        chronoTotal.start();
+        tachy.start();
+    }
 
-	while (tailleActu < tailleFichier)
-	{
-		//reception
-		Packet fchunk = csocket_ptr->receive(status);
+    while (tailleActu < tailleFichier)
+    {
+        // reception
+        Packet fchunk = csocket_ptr->receive(status);
         if (status != sf::TcpSocket::Status::Done)
         {
             if (ui)
             {
-                HideCursor(false);
+                hideCursor(false);
                 std::cout << CryptoSocket::c_ClientCommErrMsg << std::endl;
             }
             file.close();
             return;
         }
 
-		//ecriture
-		file.write( reinterpret_cast<char *>( fchunk.data() + fchunk.cursor() ), fchunk.size() );
+        // ecriture
+        file.write(reinterpret_cast<char*>(fchunk.data() + fchunk.cursor()),
+                   fchunk.size());
 
-		//suivie
-		tailleActu += fchunk.size();
-		if (ui)
-		{
-			tachy.addSample(fchunk.size());
-		
-			if (trigger == 0)
-			{
+        // suivie
+        tailleActu += fchunk.size();
+        if (ui)
+        {
+            tachy.addSample(fchunk.size());
+
+            if (trigger == 0)
+            {
                 updateStateBar(tailleActu, tailleFichier, tachy.speed());
-				trigger = 1024;
-			}
-			else trigger--;
-		}
-
-	}
-	if (ui) 
-	{
+                trigger = 1024;
+            }
+            else
+                trigger--;
+        }
+    }
+    if (ui)
+    {
         updateStateBar(tailleActu, tailleFichier, tachy.speed(), true);
-		tachy.stop();
-		chronoTotal.stop();
-		std::cout << "vitesse moyenne: " << tachy.avgSpeed() << "ko/s" << std::endl;
-		std::cout << "temps Total: " << chronoTotal.get() << "ms" << std::endl;
-        HideCursor(false);
-	}
-	file.close();
+        tachy.stop();
+        chronoTotal.stop();
+        std::cout << "vitesse moyenne: " << tachy.avgSpeed() << "ko/s" << std::endl;
+        std::cout << "temps Total: " << chronoTotal.get() << "ms" << std::endl;
+        hideCursor(false);
+    }
+    file.close();
 }
 
 void upload(CryptoSocket* csocket_ptr, const std::string& filename,
@@ -280,71 +281,72 @@ void upload(CryptoSocket* csocket_ptr, const std::string& filename,
         RETURN_IF(status != sf::TcpSocket::Status::Done, )
     }
 
-	if (depart.size() == 0 || depart.data()[0] == false) return;
+    if (depart.size() == 0 || depart.data()[0] == false)
+        return;
 
-	// téléversement
-	Tachymeter tachy;
-	chronometer chronoTotal;
-	uint16_t trigger = 0;
-	size_t tailleActu = 0;
-	if (ui)
-	{
-        HideCursor(true);
+    // téléversement
+    Tachymeter tachy;
+    chronometer chronoTotal;
+    uint16_t trigger = 0;
+    size_t tailleActu = 0;
+    if (ui)
+    {
+        hideCursor(true);
         updateStateBar(0, tailleFichier, false);
-		chronoTotal.start();
-		tachy.start();
-	}
+        chronoTotal.start();
+        tachy.start();
+    }
 
-	while (!file.eof())
-	{
-		const size_t packetSize = 16 * 90;
-		Packet fchunk(packetSize);
-		const size_t maxSize = packetSize - 1;
-		char data[maxSize];
-		size_t size = 0;
+    while (!file.eof())
+    {
+        const size_t packetSize = 16 * 90;
+        Packet fchunk(packetSize);
+        const size_t maxSize = packetSize - 1;
+        char data[maxSize];
+        size_t size = 0;
 
-		file.read( data, maxSize);
-		size = file.gcount();
+        file.read(data, maxSize);
+        size = file.gcount();
 
-		fchunk.add(reinterpret_cast<uint8_t*>(data), size);
+        fchunk.add(reinterpret_cast<uint8_t*>(data), size);
 
-		csocket_ptr->send(fchunk, status);
-        if ( status != sf::TcpSocket::Status::Done )
+        csocket_ptr->send(fchunk, status);
+        if (status != sf::TcpSocket::Status::Done)
         {
             if (ui)
             {
-                HideCursor(false);
+                hideCursor(false);
                 std::cout << CryptoSocket::c_ClientCommErrMsg << std::endl;
             }
             file.close();
             return;
         }
 
-		//suivie
-		if (ui)
-		{
+        // suivie
+        if (ui)
+        {
+            tailleActu += fchunk.size();
+            tachy.addSample(fchunk.size());
 
-			tailleActu += fchunk.size();
-			tachy.addSample(fchunk.size());
-
-			if (trigger == 0)
-			{
+            if (trigger == 0)
+            {
                 updateStateBar(tailleActu, tailleFichier, tachy.speed());
-				trigger = 1024;
-			}
-			else trigger--;
-		}
-	}
-	if (ui)
-	{
+                trigger = 1024;
+            }
+            else
+                trigger--;
+        }
+    }
+    if (ui)
+    {
         updateStateBar(tailleActu, tailleFichier, tachy.speed(), true);
-		tachy.stop();
-		chronoTotal.stop();
-		std::cout << "vitesse moyenne: " << tachy.avgSpeed() << "Ko/s" << std::endl;
-		std::cout << "temps Total: " << chronoTotal.get()/1000.f << "s" << std::endl;
-        HideCursor(false);
-	}
-	file.close();
+        tachy.stop();
+        chronoTotal.stop();
+        std::cout << "vitesse moyenne: " << tachy.avgSpeed() << "Ko/s" << std::endl;
+        std::cout << "temps Total: " << chronoTotal.get() / 1000.f << "s" << std::endl;
+        hideCursor(false);
+    }
+    file.close();
 }
 
 void uploadDemand(CryptoSocket* csocket_ptr, const std::string& filename,

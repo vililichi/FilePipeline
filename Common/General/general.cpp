@@ -5,7 +5,8 @@
 #include <bit>
 
 
-std::vector <std::string> split(const std::string& chaine, const char separateur, bool separateurMultiple)
+std::vector<std::string> split(const std::string& chaine, const char separateur,
+                               bool separateurMultiple)
 {
     size_t i = 0;
     std::vector<std::string> out;
@@ -36,7 +37,7 @@ std::vector <std::string> split(const std::string& chaine, const char separateur
     return out;
 }
 
-std::vector<std::string> splitCommand(const std::string& commande) 
+std::vector<std::string> splitCommand(const std::string& commande)
 {
     size_t i = 0;
     std::vector<std::string> out;
@@ -53,7 +54,7 @@ std::vector<std::string> splitCommand(const std::string& commande)
             }
             j++;
         }
-        if ( j != i)
+        if (j != i)
         {
             const size_t taille = (j - i) + 1;
             char* mot = new char[taille];
@@ -62,7 +63,7 @@ std::vector<std::string> splitCommand(const std::string& commande)
                 mot[k] = commande[i + k];
             }
             mot[taille - 1] = '\0';
-            out.push_back( split( std::string(mot), '"' ).back() );
+            out.push_back(split(std::string(mot), '"').back());
             delete[] mot;
         }
         if (commande[j] == '\0')
@@ -78,7 +79,7 @@ void createFolder(const std::string& path)
         std::filesystem::create_directory(path);
 }
 
-void IgnoreLine()
+void ignoreLine()
 {
     std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
 }
@@ -100,7 +101,7 @@ void ManageEndian(uint8_t* const bytes_, const size_t nbrBytes_)
 #include <windows.h>
 #endif // _WIN32
 
-void HideCursor(const bool hide_)
+void hideCursor(const bool hide_)
 {
 #ifdef _WIN32
     HANDLE consoleHandle = GetStdHandle(STD_OUTPUT_HANDLE);

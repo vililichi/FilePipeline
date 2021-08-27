@@ -17,7 +17,7 @@ std::string Repl::buildHelpMessage(const std::string& name, const AliasVec& alia
 
     if (!alias.empty())
     {
-        oss << " {";
+        oss << "{";
         oss << str::join(alias, "|");
         oss << "}";
     }
@@ -69,7 +69,7 @@ bool Repl::printPrompt()
 
 bool Repl::parse(const ParamVec& command)
 {
-    if (command.size() == 0)
+    if (command.empty())
     {
         return true;
     }
