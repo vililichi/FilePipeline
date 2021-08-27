@@ -77,12 +77,12 @@ void createFolder(const std::string& path)
         std::filesystem::create_directory(path);
 }
 
-void IgnoreLine()
+void ignoreLine()
 {
     std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
 }
 
-void HideCursor(const bool hide_)
+void hideCursor(const bool hide_)
 {
     return;
 }

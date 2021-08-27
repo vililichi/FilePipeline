@@ -10,6 +10,6 @@ std::vector<std::string> splitCommand(const std::string& commande);
 
 void createFolder(const std::string& path);
 
-void IgnoreLine();
+void ignoreLine();
 
-void HideCursor(const bool hide_);
+void hideCursor(const bool hide_);

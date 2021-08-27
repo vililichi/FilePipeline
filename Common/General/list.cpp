@@ -1,8 +1,8 @@
 #include "list.h"
 
 #include "Communication/command.h"
-#include "MacroBank.h"
 #include "general.h"
+#include "macroBank.h"
 
 #include <filesystem>
 
@@ -41,10 +41,13 @@ std::vector<fileInfo> list(const std::string& path)
     std::filesystem::directory_iterator dirItt(path);
     for (auto& entry : dirItt)
     {
-        fileInfo fi;
-        fi.size = entry.file_size();
-        fi.name = split(entry.path().string(), '\\', true).back();
-        retour.push_back(fi);
+        if (entry.is_regular_file())
+        {
+            fileInfo fi;
+            fi.size = entry.file_size();
+            fi.name = entry.path().filename();
+            retour.push_back(fi);
+        }
     }
     return retour;
 }

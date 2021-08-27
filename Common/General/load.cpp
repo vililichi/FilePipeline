@@ -135,7 +135,7 @@ void download(CryptoSocket* csocket_ptr, const std::string& filename,
     uint16_t trigger = 0;
     if (ui)
     {
-        HideCursor(true);
+        hideCursor(true);
         updateStateBar(0, tailleFichier, 0);
         chronoTotal.start();
         tachy.start();
@@ -149,7 +149,7 @@ void download(CryptoSocket* csocket_ptr, const std::string& filename,
         {
             if (ui)
             {
-                HideCursor(false);
+                hideCursor(false);
                 std::cout << CryptoSocket::c_ClientCommErrMsg << std::endl;
             }
             file.close();
@@ -182,7 +182,7 @@ void download(CryptoSocket* csocket_ptr, const std::string& filename,
         chronoTotal.stop();
         std::cout << "vitesse moyenne: " << tachy.avgSpeed() << "ko/s" << std::endl;
         std::cout << "temps Total: " << chronoTotal.get() << "ms" << std::endl;
-        HideCursor(false);
+        hideCursor(false);
     }
     file.close();
 }
@@ -276,7 +276,7 @@ void upload(CryptoSocket* csocket_ptr, const std::string& filename,
     size_t tailleActu = 0;
     if (ui)
     {
-        HideCursor(true);
+        hideCursor(true);
         updateStateBar(0, tailleFichier, false);
         chronoTotal.start();
         tachy.start();
@@ -300,7 +300,7 @@ void upload(CryptoSocket* csocket_ptr, const std::string& filename,
         {
             if (ui)
             {
-                HideCursor(false);
+                hideCursor(false);
                 std::cout << CryptoSocket::c_ClientCommErrMsg << std::endl;
             }
             file.close();
@@ -329,7 +329,7 @@ void upload(CryptoSocket* csocket_ptr, const std::string& filename,
         chronoTotal.stop();
         std::cout << "vitesse moyenne: " << tachy.avgSpeed() << "Ko/s" << std::endl;
         std::cout << "temps Total: " << chronoTotal.get() / 1000.f << "s" << std::endl;
-        HideCursor(false);
+        hideCursor(false);
     }
     file.close();
 }

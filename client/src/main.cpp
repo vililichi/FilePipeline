@@ -19,7 +19,6 @@ void createFolders()
     createFolder(UP_PATH);
 }
 
-
 #pragma region cle
 std::pair<RSA::cle, RSA::cle> generateKeys()
 {
@@ -139,9 +138,10 @@ protected:
                 {
                     std::cout << "Valeur invalide\n";
                     std::cin.clear();
-                    IgnoreLine();
+                    ignoreLine();
                     continue;
                 }
+                ignoreLine();
 
                 // Convertion de la chaine en ip
                 ip = sf::IpAddress(strIp);
@@ -154,7 +154,7 @@ protected:
                 break;
             }
 
-            unsigned short port;
+            uint16_t port;
             while (true)
             {
                 // Obtention du port
@@ -164,9 +164,10 @@ protected:
                 {
                     std::cout << "Valeur invalide\n";
                     std::cin.clear();
-                    IgnoreLine();
+                    ignoreLine();
                     continue;
                 }
+                ignoreLine();
                 break;
             }
 
@@ -212,13 +213,13 @@ std::unique_ptr<repl::Repl> createRepl(CryptoSocket* cSocket)
         [cSocket](const ParamVec& command) -> bool
         { return cmd::renameCmd(cSocket, command); },
         "Renomme le fichier <fichier> avec <nom>", {"rn"},
-        "[local {lc}|server {sv}] <fichier> <nom>");
+        "<local{lc}|server{sv}> <fichier> <nom>");
 
     clientRepl->addCommand(
         "remove",
         [cSocket](const ParamVec& command) -> bool
         { return cmd::removeCmd(cSocket, command); },
-        "Supprime le fichier <fichier>", {"rm"}, "[local {lc}|server {sv}] <fichier>");
+        "Supprime le fichier <fichier>", {"rm"}, "<local{lc}|server{sv}> <fichier>");
 
     return clientRepl;
 }
