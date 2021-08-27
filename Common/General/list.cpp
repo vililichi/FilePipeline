@@ -45,7 +45,7 @@ std::vector<fileInfo> list(const std::string& path)
         {
             fileInfo fi;
             fi.size = entry.file_size();
-            fi.name = entry.path().filename();
+            fi.name = entry.path().filename().string();
             retour.push_back(fi);
         }
     }

@@ -146,19 +146,20 @@ inline const Packet& Packet::operator>>(std::basic_string<T>& data_) const
 {
     constexpr size_t sizeFactor = sizeof(T) / sizeof(uint8_t);
 
-    size_t bytesNbr = 0;
+    size_t charNbr = 0;
     T* charData = reinterpret_cast<T*>(m_data + m_cursor);
 
 
-    while (*(charData + bytesNbr) != '\0')
+    while (*(charData + charNbr) != '\0')
     {
-        bytesNbr++;
-        if ((m_cursor + bytesNbr * sizeFactor) >= m_size)
+        charNbr++;
+        if ((m_cursor + charNbr * sizeFactor) >= m_size)
             throw "depassement lors de la lecture";
     }
+    charNbr++;
 
-    charData = new T[bytesNbr];
-    for (size_t i = 0; i < bytesNbr; i++)
+    charData = new T[charNbr];
+    for (size_t i = 0; i < charNbr; i++)
     {
         *this >> charData[i];
     }
