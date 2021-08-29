@@ -221,6 +221,12 @@ std::unique_ptr<repl::Repl> createRepl(CryptoSocket* cSocket)
         { return cmd::removeCmd(cSocket, command); },
         "Supprime le fichier <fichier>", {"rm"}, "<local{lc}|server{sv}> <fichier>");
 
+    clientRepl->addCommand(
+        "index",
+        [cSocket](const ParamVec& command) -> bool
+        { return cmd::indexCmd(cSocket, command); },
+        "Telecharge ou upload un fichier selon son [index], si l'[index] n'est pas specifie, la liste sera presentee à l'utilisateur et l'index sera ensuite demande.", { "id" }, "<upload{up}|download{dwn}> [index]");
+
     return clientRepl;
 }
 #pragma endregion repl

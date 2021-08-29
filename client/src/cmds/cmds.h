@@ -10,6 +10,7 @@ namespace cmd
     bool listCmd(CryptoSocket* cSocket, const ParamVec& command);
     bool downloadCmd(CryptoSocket* cSocket, const ParamVec& command);
     bool uploadCmd(CryptoSocket* cSocket, const ParamVec& command);
+    bool indexCmd(CryptoSocket* cSocket, const ParamVec& command);
     bool renameCmd(CryptoSocket* cSocket, const ParamVec& command);
     bool removeCmd(CryptoSocket* cSocket, const ParamVec& command);
 }
